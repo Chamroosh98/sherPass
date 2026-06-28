@@ -4,11 +4,10 @@
 URL_GEOSITE_IRAN="https://github.com/chocolate4u/Iran-v2ray-rules/releases/latest/download/geosite.dat"
 URL_GEOIP_IRAN="https://github.com/chocolate4u/Iran-v2ray-rules/releases/latest/download/geoip.dat"
 XRAY_ASSET_DIR="/usr/share/xray"
-SINGBOX_ASSET_DIR="/usr/share/sing-box"
 
 update_dat_files() {
     print_status "work" "Fetching latest Iran routing databases (DAT)"
-    mkdir -p "$XRAY_ASSET_DIR" "$SINGBOX_ASSET_DIR"
+    mkdir -p "$XRAY_ASSET_DIR"
     wget -qO /tmp/geosite.dat "$URL_GEOSITE_IRAN"
     wget -qO /tmp/geoip.dat "$URL_GEOIP_IRAN"
 
@@ -20,9 +19,6 @@ update_dat_files() {
 
     cp /tmp/geosite.dat "$XRAY_ASSET_DIR/geosite.dat"
     cp /tmp/geoip.dat "$XRAY_ASSET_DIR/geoip.dat"
-    cp /tmp/geosite.dat "$SINGBOX_ASSET_DIR/geosite.dat"
-    cp /tmp/geoip.dat "$SINGBOX_ASSET_DIR/geoip.dat"
-    
     rm -f /tmp/geosite.dat /tmp/geoip.dat
     return 0
 }
@@ -52,7 +48,7 @@ configure_uci_shunt() {
 
     uci set passwall.@routing_rule[$rule_index].domain_list='geosite:ir'
     uci set passwall.@routing_rule[$rule_index].ip_list='geoip:ir'
-    uci set passwall.main.dns_mode='chinadns-ng'
+    uci set passwall.main.dns_mode='xray'
     uci set passwall.main.remote_dns='1.1.1.1'
     uci set passwall.main.local_dns='178.22.122.100'
     

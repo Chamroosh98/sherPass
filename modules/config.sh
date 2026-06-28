@@ -1,8 +1,5 @@
 #!/bin/sh
-# shellcheck shell=ash
-# Graphic styles and palette configuration for sherPass
 
-# Modern Neon 256-bit Color Palette
 CYAN='\033[38;5;51m'
 PURPLE='\033[38;5;141m'
 GREEN='\033[38;5;84m'
@@ -12,7 +9,6 @@ GRAY='\033[38;5;244m'
 NC='\033[0m'
 BOLD='\033[1m'
 
-# Beautiful Line Logging Utility
 print_status() {
     local type=$1; local msg=$2
     case $type in
@@ -24,7 +20,6 @@ print_status() {
     esac
 }
 
-# ASCII Box Border Header Menu
 draw_header() {
     clear
     echo -e "${PURPLE}┌───────────────────────────────────────────────┐${NC}"
