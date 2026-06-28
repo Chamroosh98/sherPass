@@ -8,7 +8,7 @@ if command -v apk >/dev/null 2>&1; then
     PKG_MGR="apk"; INSTALL_CMD="apk add --allow-untrusted"; REMOVE_CMD="apk del"
 else
     PKG_MGR="opkg"; INSTALL_CMD="opkg install"; REMOVE_CMD="opkg remove"
-    fi
+fi
 
 if [ "$PKG_MGR" = "apk" ]; then
     ARCH=$(apk info -o kernel 2>/dev/null | grep -E -o 'arm_.*|mips_.*|x86_64|aarch64' | head -n 1)
@@ -18,12 +18,9 @@ fi
 [ -z "$ARCH" ] && ARCH="arm_cortex-a7_neon-vfpv4"
 
 # ۲. حل مشکل اجرای آنلاین (One-Liner Execution Safeguard)
-# اگر اسکریپت به صورت پایپ (| sh) اجرا شده باشه، پوشه دایرکتوری واقعی رو پیدا نمیکنه
-# در این حالت، خودش رو به همراه ماژول‌ها دانلود میکنه و فایل واقعی روی دیسک رو ران میکنه
 if [ ! -f "./modules/config.sh" ] && [ "$1" != "--fallback-remote" ]; then
     mkdir -p /tmp/sherpass_space/modules
     
-    # دانلود تمام متعلقات به پوشه موقت دیسک
     wget -qO /tmp/sherpass_space/modules/config.sh "$GITHUB_RAW_URL/modules/config.sh"
     wget -qO /tmp/sherpass_space/modules/cleaner.sh "$GITHUB_RAW_URL/modules/cleaner.sh"
     wget -qO /tmp/sherpass_space/modules/downloader.sh "$GITHUB_RAW_URL/modules/downloader.sh"
@@ -31,7 +28,6 @@ if [ ! -f "./modules/config.sh" ] && [ "$1" != "--fallback-remote" ]; then
     wget -qO /tmp/sherpass_space/modules/cronjob.sh "$GITHUB_RAW_URL/modules/cronjob.sh"
     wget -qO /tmp/sherpass_space/install.sh "$GITHUB_RAW_URL/install.sh"
     
-    # سوییچ کردن به دایرکتوری واقعی و اجرای اسکریپت ذخیره شده روی دیسک
     cd /tmp/sherpass_space || exit 1
     exec sh install.sh --fallback-remote "$@"
 fi
@@ -43,7 +39,6 @@ fi
 . ./modules/iran_rules.sh
 . ./modules/cronjob.sh
 
-# حذف آرگومان کمکی برای اینکه تداخلی با منطق اصلی اسکریپت ایجاد نشه
 [ "$1" = "--fallback-remote" ] && shift
 
 run_optimized_installation() {
@@ -52,21 +47,21 @@ run_optimized_installation() {
     printf "Do you want to install ${BOLD}sing-box${NC} core? (Heavy on low-end devices) [y/N]: "
     read install_singbox </dev/tty
     
-    # فراخوانی ماژول محیط‌سازی
     run_environment_setup "$INSTALL_CMD" "$REMOVE_CMD" "$LOG_FILE"
     
     echo -e "\n${BOLD}${CYAN}[Phase 1/2: Deploying Micro Proxy Cores]${NC}"
-    download_package_smart "passwall_packages" "xray-core" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
-    download_package_smart "passwall_packages" "tcping" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
-    download_package_smart "passwall_packages" "geoview" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
+    # تغییر نام فولدرها به ساختار استاندارد سورس‌فورج (packages و luci)
+    download_package_smart "packages" "xray-core" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
+    download_package_smart "packages" "tcping" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
+    download_package_smart "packages" "geoview" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
     
     if [ "$install_singbox" = "y" ] || [ "$install_singbox" = "Y" ]; then
-        download_package_smart "passwall_packages" "sing-box" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
+        download_package_smart "packages" "sing-box" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
     fi
 
     echo -e "${BOLD}${CYAN}[Phase 2/2: Injecting LuCI User Interfaces]${NC}"
-    download_package_smart "passwall2" "luci-app-passwall2" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
-    download_package_smart "passwall2" "luci-i18n-passwall2-fa" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
+    download_package_smart "luci" "luci-app-passwall2" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
+    download_package_smart "luci" "luci-i18n-passwall2-fa" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
     
     echo -e "${GREEN}${BOLD}✔ Deployment flawless! Passwall 2 Pro is fully running. 🔥${NC}"
 }
