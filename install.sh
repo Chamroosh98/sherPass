@@ -3,12 +3,12 @@
 LOG_FILE="/tmp/passwall_install.log"
 GITHUB_RAW_URL="https://raw.githubusercontent.com/Chamroosh98/sherPass/main"
 
-# 1. Env Auto-Detection
+# ۱. تشخیص خودکار پکیج منیجر و معماری روتر
 if command -v apk >/dev/null 2>&1; then
     PKG_MGR="apk"; INSTALL_CMD="apk add --allow-untrusted"; REMOVE_CMD="apk del"
 else
     PKG_MGR="opkg"; INSTALL_CMD="opkg install"; REMOVE_CMD="opkg remove"
-fi
+    fi
 
 if [ "$PKG_MGR" = "apk" ]; then
     ARCH=$(apk info -o kernel 2>/dev/null | grep -E -o 'arm_.*|mips_.*|x86_64|aarch64' | head -n 1)
@@ -17,26 +17,34 @@ else
 fi
 [ -z "$ARCH" ] && ARCH="arm_cortex-a7_neon-vfpv4"
 
-# 2. Smart One-Liner Remote Loader
-# اگر اسکریپت لوکال نباشه، خودش دایرکتوری ماژول‌ها رو دانلود میکنه تا به خطای نبود فایل نخوریم
-if [ ! -d "./modules" ]; then
+# ۲. حل مشکل اجرای آنلاین (One-Liner Execution Safeguard)
+# اگر اسکریپت به صورت پایپ (| sh) اجرا شده باشه، پوشه دایرکتوری واقعی رو پیدا نمیکنه
+# در این حالت، خودش رو به همراه ماژول‌ها دانلود میکنه و فایل واقعی روی دیسک رو ران میکنه
+if [ ! -f "./modules/config.sh" ] && [ "$1" != "--fallback-remote" ]; then
     mkdir -p /tmp/sherpass_space/modules
-    cd /tmp/sherpass_space || exit 1
     
-    # دانلود لایو ماژول‌ها به پوشه لوکال موقت
-    wget -qO modules/config.sh "$GITHUB_RAW_URL/modules/config.sh"
-    wget -qO modules/cleaner.sh "$GITHUB_RAW_URL/modules/cleaner.sh"
-    wget -qO modules/downloader.sh "$GITHUB_RAW_URL/modules/downloader.sh"
-    wget -qO modules/iran_rules.sh "$GITHUB_RAW_URL/modules/iran_rules.sh"
-    wget -qO modules/cronjob.sh "$GITHUB_RAW_URL/modules/cronjob.sh"
+    # دانلود تمام متعلقات به پوشه موقت دیسک
+    wget -qO /tmp/sherpass_space/modules/config.sh "$GITHUB_RAW_URL/modules/config.sh"
+    wget -qO /tmp/sherpass_space/modules/cleaner.sh "$GITHUB_RAW_URL/modules/cleaner.sh"
+    wget -qO /tmp/sherpass_space/modules/downloader.sh "$GITHUB_RAW_URL/modules/downloader.sh"
+    wget -qO /tmp/sherpass_space/modules/iran_rules.sh "$GITHUB_RAW_URL/modules/iran_rules.sh"
+    wget -qO /tmp/sherpass_space/modules/cronjob.sh "$GITHUB_RAW_URL/modules/cronjob.sh"
+    wget -qO /tmp/sherpass_space/install.sh "$GITHUB_RAW_URL/install.sh"
+    
+    # سوییچ کردن به دایرکتوری واقعی و اجرای اسکریپت ذخیره شده روی دیسک
+    cd /tmp/sherpass_space || exit 1
+    exec sh install.sh --fallback-remote "$@"
 fi
 
-# 3. Enforce Local Modularity (حالا با خیال راحت لود میشه)
+# ۳. لود کردن مطمئن ماژول‌ها به صورت لوکال
 . ./modules/config.sh
 . ./modules/cleaner.sh
 . ./modules/downloader.sh
 . ./modules/iran_rules.sh
 . ./modules/cronjob.sh
+
+# حذف آرگومان کمکی برای اینکه تداخلی با منطق اصلی اسکریپت ایجاد نشه
+[ "$1" = "--fallback-remote" ] && shift
 
 run_optimized_installation() {
     local install_singbox="n"
@@ -44,6 +52,7 @@ run_optimized_installation() {
     printf "Do you want to install ${BOLD}sing-box${NC} core? (Heavy on low-end devices) [y/N]: "
     read install_singbox </dev/tty
     
+    # فراخوانی ماژول محیط‌سازی
     run_environment_setup "$INSTALL_CMD" "$REMOVE_CMD" "$LOG_FILE"
     
     echo -e "\n${BOLD}${CYAN}[Phase 1/2: Deploying Micro Proxy Cores]${NC}"
