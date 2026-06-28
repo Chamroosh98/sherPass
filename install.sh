@@ -1,11 +1,6 @@
 #!/bin/sh
-# shellcheck shell=ash
-# sherPass Core Orchestrator (Root Execution Layer)
-
-# پاکسازی آنی ترمینال در بدو ورود برای زیبایی و حس نیتیو بودن
 clear
 
-# بنر لودینگ سریع برای اینکه کاربر حس نکنه اسکریپت هنگ کرده
 echo -e "\033[38;5;141m┌───────────────────────────────────────────────┐\033[0m"
 echo -e "\033[38;5;141m│\033[0m   \033[1;38;5;51m⚡ sherPass Framework Engine Loading...     \033[0m\033[38;5;141m│\033[0m"
 echo -e "\033[38;5;141m├───────────────────────────────────────────────┤\033[0m"
@@ -41,6 +36,8 @@ if [ ! -f "./modules/config.sh" ] && [ "$1" != "--fallback-remote" ]; then
     wget -qO /tmp/sherpass_space/modules/cronjob.sh "$GITHUB_RAW_URL/modules/cronjob.sh"
     wget -qO /tmp/sherpass_space/modules/validator.sh "$GITHUB_RAW_URL/modules/validator.sh"
     wget -qO /tmp/sherpass_space/modules/banner.sh "$GITHUB_RAW_URL/modules/banner.sh"
+    wget -qO /tmp/sherpass_space/modules/network.sh "$GITHUB_RAW_URL/modules/network.sh"
+    wget -qO /tmp/sherpass_space/modules/passwd.sh "$GITHUB_RAW_URL/modules/passwd.sh" # <--- نام جدید آپدیت شد
     wget -qO /tmp/sherpass_space/install.sh "$GITHUB_RAW_URL/install.sh"
     
     # سوییچ کردن به دایرکتوری واقعی و اجرای اسکریپت ذخیره شده روی دیسک
@@ -56,6 +53,8 @@ fi
 . ./modules/cronjob.sh
 . ./modules/validator.sh
 . ./modules/banner.sh
+. ./modules/network.sh
+. ./modules/passwd.sh # <--- نام جدید آپدیت شد
 
 # حذف آرگومان کمکی جهت تداخل نداشتن با لاجیک اصلی اسکریپت
 [ "$1" = "--fallback-remote" ] && shift
@@ -65,6 +64,12 @@ run_optimized_installation() {
     local check_result=""
     local install_singbox="n"
     
+    # اول: اجبار کاربر به تعریف پسورد در صورت نداشتن آن
+    enforce_root_password
+    
+    # دوم: تغییر آی‌پی روتر به 10.1.1.1
+    change_lan_ip
+
     echo -e "\n${YELLOW}⚡ Optimization Prompt:${NC}"
     
     # حلقه سخت‌گیرانه اعتبارسنجی ورودی و زبان کیبورد انگلیسی
