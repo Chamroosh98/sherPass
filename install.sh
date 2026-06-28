@@ -30,15 +30,17 @@ log() {
 }
 
 prepare_environment() {
-    printf "${CYAN}➔${NC} Flushing deprecated repository feeds ... "
+    print_status "work" "Flushing deprecated repository feeds"
     [ -f /etc/opkg/customfeeds.conf ] && sed -i '/passwall/d' /etc/opkg/customfeeds.conf 2>/dev/null
     [ -f /etc/apk/repositories ] && sed -i '/passwall/d' /etc/apk/repositories 2>/dev/null
-    echo -e "${GREEN}✔ Cleaned${NC}"
+    print_status "done" "Cleaned"
 
-    printf "${CYAN}➔${NC} Upgrading router network engines & SSL ... "
-    $INSTALL_CMD wget curl ca-bundle libustream-openssl >> $LOG_FILE 2>&1 &
-    show_spinner $!
-    echo -e "${GREEN}✔ Network Upgraded${NC}"
+    print_status "work" "Upgrading router network engines & SSL"
+    if $INSTALL_CMD wget curl ca-bundle libustream-openssl >> $LOG_FILE 2>&1; then
+        print_status "done" "Network Upgraded"
+    else
+        print_status "failed" "Network Engine Upgrade Failed"
+    fi
 }
 
 # 4. Fetch and compute dynamic package targets from sourceforge index.json
@@ -47,39 +49,39 @@ download_package_smart() {
     local keyword=$2
     local index_file="/tmp/sf_${sub_folder}_index.json"
     
-    printf "${CYAN}➔${NC} Resolving SourceForge index metadata for ${BOLD}$keyword${NC} ... "
-    wget -qO "$index_file" "https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/$ARCH/$sub_folder/index.json" &
-    show_spinner $!
+    print_status "work" "Resolving SourceForge metadata for ${BOLD}$keyword${NC}"
+    wget -qO "$index_file" "https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/$ARCH/$sub_folder/index.json"
     
     if [ ! -s "$index_file" ]; then
-        echo -e "${RED}✘ Failed to fetch index!${NC}"
+        print_status "failed" "Failed to fetch database index!"
         return 1
     fi
 
-    # پارس دقیق ساختار کلید-مقدار بدون r1 برای پکیج‌های خاص زبانی
     local pkg_version=$(grep -o "\"$keyword\": \"[^\"]*" "$index_file" | cut -d'"' -f4)
     if [ -z "$pkg_version" ]; then
-        echo -e "${RED}✘ Package version not found!${NC}"
+        print_status "failed" "Version mapping for '$keyword' not found!"
         rm -f "$index_file"
         return 1
     fi
-    echo -e "${GREEN}✔ Resolution: v$pkg_version${NC}"
     
     local full_name="${keyword}_${pkg_version}_${ARCH}.apk"
+    print_status "sub" "Downloading ${BOLD}$full_name${NC}"
     
-    printf "   ${PURPLE}↳${NC} Downloading ${BOLD}$full_name${NC} ... "
-    wget -qO "/tmp/$full_name" "https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/$ARCH/$sub_folder/$full_name" &
-    show_spinner $!
-    
-    if [ -s "/tmp/$full_name" ]; then
-        printf "   ${PURPLE}↳${NC} Injecting binary via APK into core OS ... "
-        $INSTALL_CMD "/tmp/$full_name" >> $LOG_FILE 2>&1 &
-        show_spinner $!
-        echo -e "${GREEN}✔ Success${NC}\n"
+    if wget -qO "/tmp/$full_name" "https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/$ARCH/$sub_folder/$full_name"; then
+        print_status "sub" "Injecting package via APK into core OS"
+        $INSTALL_CMD "/tmp/$full_name" >> $LOG_FILE 2>&1
+        local status=$?
         rm -f "/tmp/$full_name" "$index_file"
-        return 0
+        
+        if [ $status -eq 0 ]; then
+            print_status "success" "${BOLD}$keyword${NC} deployed successfully!"
+            return 0
+        else
+            print_status "failed" "APK installation failed for $keyword"
+            return 1
+        fi
     else
-        echo -e "${RED}✘ Download Blocked/Failed!${NC}\n"
+        print_status "failed" "Download blocked or network timeout!"
         rm -f "$index_file"
         return 1
     fi
@@ -101,11 +103,11 @@ run_full_installation() {
 }
 
 setup_auto_update() {
-    printf "${CYAN}➔${NC} Binding cron synchronization configurations ... "
+    print_status "work" "Binding cron synchronization configurations"
     local cron_cmd="0 4 * * * wget -qO- $GITHUB_RAW_URL/install.sh | sh -s -- --update-rules"
     (crontab -l 2>/dev/null | grep -v "update-rules"; echo "$cron_cmd") | crontab -
     /etc/init.d/cron restart
-    echo -e "${GREEN}✔ Cronjob bound at 04:00 AM${NC}"
+    print_status "done" "Cronjob bound at 04:00 AM"
 }
 
 if [ "$1" = "--update-rules" ]; then

@@ -7,17 +7,16 @@ XRAY_ASSET_DIR="/usr/share/xray"
 SINGBOX_ASSET_DIR="/usr/share/sing-box"
 
 update_dat_files() {
-    printf "${CYAN}➔${NC} Fetching latest Iran routing databases (DAT) ... "
+    print_status "work" "Fetching latest Iran routing databases (DAT)"
     mkdir -p "$XRAY_ASSET_DIR" "$SINGBOX_ASSET_DIR"
-    wget -qO /tmp/geosite.dat "$URL_GEOSITE_IRAN" &
-    wget -qO /tmp/geoip.dat "$URL_GEOIP_IRAN" &
-    show_spinner $!
+    wget -qO /tmp/geosite.dat "$URL_GEOSITE_IRAN"
+    wget -qO /tmp/geoip.dat "$URL_GEOIP_IRAN"
 
     if [ ! -s /tmp/geosite.dat ] || [ ! -s /tmp/geoip.dat ]; then
-        echo -e "${RED}✘ Download failed!${NC}"
+        print_status "failed" "Database download failed!"
         return 1
     fi
-    echo -e "${GREEN}✔ Databases Fetched${NC}"
+    print_status "done" "Databases Fetched"
 
     cp /tmp/geosite.dat "$XRAY_ASSET_DIR/geosite.dat"
     cp /tmp/geoip.dat "$XRAY_ASSET_DIR/geoip.dat"
@@ -29,7 +28,7 @@ update_dat_files() {
 }
 
 configure_uci_shunt() {
-    printf "${CYAN}➔${NC} Injecting UCI Passwall Shunt structures ... "
+    print_status "work" "Injecting UCI Passwall Shunt structures"
     local rule_index=0
     local found_ir_rule=false
     
@@ -59,7 +58,7 @@ configure_uci_shunt() {
     
     uci commit passwall
     /etc/init.d/passwall restart >/dev/null 2>&1
-    echo -e "${GREEN}✔ Shunt Routing Live!${NC}"
+    print_status "done" "Shunt Routing Live!"
 }
 
 run_iran_rules_module() {
