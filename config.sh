@@ -1,5 +1,8 @@
 #!/bin/sh
+# shellcheck shell=ash
+# Graphic styles and palette configuration for sherPass
 
+# Modern Neon 256-bit Color Palette
 CYAN='\033[38;5;51m'
 PURPLE='\033[38;5;141m'
 GREEN='\033[38;5;84m'
@@ -9,25 +12,16 @@ GRAY='\033[38;5;244m'
 NC='\033[0m'
 BOLD='\033[1m'
 
-# Pure Shell Live Spinner Animation compatible with BusyBox
-show_spinner() {
-    local pid=$1
-    local spinstr='|/-'
-    echo -n "   "
-    while [ -d "/proc/$pid" ]; do
-        local temp=${spinstr#?}
-        printf "${PURPLE}\b%c${NC}" "$spinstr"
-        local spinstr=$temp${spinstr%"$temp"}
-        
-        # استفاده از usleep به جای sleep اعشاری
-        # ۱۰۰۰۰۰ میکروثانیه معادل همان ۰.۱ ثانیه است
-        if command -v usleep >/dev/null 2>&1; then
-            usleep 100000
-        else
-            sleep 1
-        fi
-    done
-    printf "\b\b"
+# Beautiful Line Logging Utility
+print_status() {
+    local type=$1; local msg=$2
+    case $type in
+        "work")    echo -e "${CYAN}➔${NC} $msg ... " ;;
+        "sub")     echo -e "   ${PURPLE}↳${NC} $msg ... " ;;
+        "success") echo -e "   ${GREEN}✔ $msg${NC}\n" ;;
+        "done")    echo -e "${GREEN}✔ $msg${NC}" ;;
+        "failed")  echo -e "${RED}✘ $msg${NC}\n" ;;
+    esac
 }
 
 # ASCII Box Border Header Menu
