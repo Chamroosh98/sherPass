@@ -1,7 +1,5 @@
 #!/bin/sh
-
 clear
-
 
 echo -e "\033[38;5;141m┌───────────────────────────────────────────────┐\033[0m"
 echo -e "\033[38;5;141m│\033[0m   \033[1;38;5;51m⚡ sherPass Framework Engine Loading...     \033[0m\033[38;5;141m│\033[0m"
@@ -12,7 +10,6 @@ echo -e "\033[38;5;141m└──────────────────
 LOG_FILE="/tmp/passwall_install.log"
 GITHUB_RAW_URL="https://raw.githubusercontent.com/Chamroosh98/sherPass/main"
 
-# تشخیص خودکار پکیج منیجر و معماری روتر
 if command -v apk >/dev/null 2>&1; then
     PKG_MGR="apk"; INSTALL_CMD="apk add --allow-untrusted"; REMOVE_CMD="apk del"
 else
@@ -26,7 +23,6 @@ else
 fi
 [ -z "$ARCH" ] && ARCH="arm_cortex-a7_neon-vfpv4"
 
-# حل مشکل اجرای آنلاین (One-Liner Execution Safeguard)
 if [ ! -f "./modules/config.sh" ] && [ "$1" != "--fallback-remote" ]; then
     mkdir -p /tmp/sherpass_space/modules
     
@@ -36,19 +32,20 @@ if [ ! -f "./modules/config.sh" ] && [ "$1" != "--fallback-remote" ]; then
     wget -qO /tmp/sherpass_space/modules/iran_rules.sh "$GITHUB_RAW_URL/modules/iran_rules.sh"
     wget -qO /tmp/sherpass_space/modules/cronjob.sh "$GITHUB_RAW_URL/modules/cronjob.sh"
     wget -qO /tmp/sherpass_space/modules/validator.sh "$GITHUB_RAW_URL/modules/validator.sh"
+    wget -qO /tmp/sherpass_space/modules/banner.sh "$GITHUB_RAW_URL/modules/banner.sh"
     wget -qO /tmp/sherpass_space/install.sh "$GITHUB_RAW_URL/install.sh"
     
     cd /tmp/sherpass_space || exit 1
     exec sh install.sh --fallback-remote "$@"
 fi
 
-# لود کردن تمام ماژول‌ها به صورت لوکال
 . ./modules/config.sh
 . ./modules/cleaner.sh
 . ./modules/downloader.sh
 . ./modules/iran_rules.sh
 . ./modules/cronjob.sh
 . ./modules/validator.sh
+. ./modules/banner.sh
 
 [ "$1" = "--fallback-remote" ] && shift
 
@@ -59,12 +56,10 @@ run_optimized_installation() {
     
     echo -e "\n${YELLOW}⚡ Optimization Prompt:${NC}"
     
-    # حلقه سخت‌گیرانه اعتبارسنجی ورودی و زبان کیبورد
     while true; do
         printf "Do you want to install ${BOLD}sing-box${NC} core? (Heavy on low-end devices) [y/n]: "
         read raw_input </dev/tty
         
-        # سپردن ارزیابی به ماژول تخصصی واشنگتن ورودی
         check_result=$(validate_ascii_input "$raw_input")
         
         if [ "$check_result" = "non-ascii" ]; then
@@ -84,7 +79,6 @@ run_optimized_installation() {
         esac
     done
     
-    # اجرای لایه زیرین
     run_environment_setup "$INSTALL_CMD" "$REMOVE_CMD" "$LOG_FILE"
     
     echo -e "\n${BOLD}${CYAN}[Phase 1/2: Deploying Micro Proxy Cores]${NC}"
@@ -99,6 +93,8 @@ run_optimized_installation() {
     echo -e "${BOLD}${CYAN}[Phase 2/2: Injecting LuCI User Interfaces]${NC}"
     download_package_smart "luci" "luci-app-passwall2" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
     download_package_smart "luci" "luci-i18n-passwall2-fa" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
+    
+    generate_custom_banner
     
     echo -e "${GREEN}${BOLD}✔ Deployment flawless! Passwall 2 Pro is fully running. 🔥${NC}"
 }
