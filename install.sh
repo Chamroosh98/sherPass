@@ -1,8 +1,9 @@
 #!/bin/sh
 
 LOG_FILE="/tmp/passwall_install.log"
+GITHUB_RAW_URL="https://raw.githubusercontent.com/Chamroosh98/sherPass/main"
 
-# Env Auto-Detection
+# 1. Env Auto-Detection
 if command -v apk >/dev/null 2>&1; then
     PKG_MGR="apk"; INSTALL_CMD="apk add --allow-untrusted"; REMOVE_CMD="apk del"
 else
@@ -16,7 +17,21 @@ else
 fi
 [ -z "$ARCH" ] && ARCH="arm_cortex-a7_neon-vfpv4"
 
-# Strict Local Modularity Loader (Relative directory loading)
+# 2. Smart One-Liner Remote Loader
+# اگر اسکریپت لوکال نباشه، خودش دایرکتوری ماژول‌ها رو دانلود میکنه تا به خطای نبود فایل نخوریم
+if [ ! -d "./modules" ]; then
+    mkdir -p /tmp/sherpass_space/modules
+    cd /tmp/sherpass_space || exit 1
+    
+    # دانلود لایو ماژول‌ها به پوشه لوکال موقت
+    wget -qO modules/config.sh "$GITHUB_RAW_URL/modules/config.sh"
+    wget -qO modules/cleaner.sh "$GITHUB_RAW_URL/modules/cleaner.sh"
+    wget -qO modules/downloader.sh "$GITHUB_RAW_URL/modules/downloader.sh"
+    wget -qO modules/iran_rules.sh "$GITHUB_RAW_URL/modules/iran_rules.sh"
+    wget -qO modules/cronjob.sh "$GITHUB_RAW_URL/modules/cronjob.sh"
+fi
+
+# 3. Enforce Local Modularity (حالا با خیال راحت لود میشه)
 . ./modules/config.sh
 . ./modules/cleaner.sh
 . ./modules/downloader.sh
@@ -29,7 +44,6 @@ run_optimized_installation() {
     printf "Do you want to install ${BOLD}sing-box${NC} core? (Heavy on low-end devices) [y/N]: "
     read install_singbox </dev/tty
     
-    # فراخوانی ماژول محیط‌سازی
     run_environment_setup "$INSTALL_CMD" "$REMOVE_CMD" "$LOG_FILE"
     
     echo -e "\n${BOLD}${CYAN}[Phase 1/2: Deploying Micro Proxy Cores]${NC}"
