@@ -69,51 +69,51 @@ prepare_environment() {
     $INSTALL_CMD wget curl ca-bundle libustream-openssl >> $LOG_FILE 2>&1
 }
 
-# 4. Inject SourceForge APK Feeds (Utilizes packages.adb automatically)
-setup_repositories() {
-    log "info" "Injecting modern Passwall 2 repositories into the system..."
-    local feed_passwall2="$SF_BASE_URL/passwall2"
-    local feed_packages="$SF_BASE_URL/passwall_packages"
+# 4. Fetch latest package names dynamically from SourceForge index
+download_package_smart() {
+    local sub_folder=$1
+    local keyword=$2
     
-    if [ "$PKG_MGR" = "apk" ]; then
-        echo "$feed_passwall2" >> /etc/apk/repositories
-        echo "$feed_packages" >> /etc/apk/repositories
-        log "info" "Updating APK signature databases (packages.adb)..."
-        apk update >> $LOG_FILE 2>&1
+    # دانلود فایل ایندکس متنی برای پیدا کردن نام دقیق پکیج
+    wget -qO /tmp/sf_index.html "https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/$ARCH/$sub_folder/"
+    
+    # پیدا کردن نام کامل فایل (مثلاً sing-box_1.2_arm.apk)
+    local full_name=$(grep -o 'href="[^"]*' /tmp/sf_index.html | grep "$keyword" | cut -d'"' -f2 | head -n 1)
+    
+    if [ -z "$full_name" ]; then
+        log "error" "Could not find any package matching '$keyword' on SourceForge!"
+        return 1
+    fi
+    
+    echo -e "${YELLOW}--> Downloading $full_name ...${NC}"
+    # دانلود با نمایش لایو پیشرفت دانلود
+    if wget --no-check-certificate --show-progress -qO "/tmp/$full_name" "https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/$ARCH/$sub_folder/$full_name"; then
+        log "info" "Installing $full_name via APK..."
+        $INSTALL_CMD "/tmp/$full_name" 2>&1 | tee -a $LOG_FILE
+        local status=$?
+        rm -f "/tmp/$full_name"
+        return $status
     else
-        echo "src/gz passwall2 $feed_passwall2" >> /etc/opkg/customfeeds.conf
-        echo "src/gz passwall_packages $feed_packages" >> /etc/opkg/customfeeds.conf
-        log "info" "Updating OPKG signature databases..."
-        opkg update >> $LOG_FILE 2>&1
+        log "error" "Failed to download $full_name"
+        return 1
     fi
 }
 
 # 5. Core installation workflow
 run_full_installation() {
     prepare_environment
-    setup_repositories
-
-    log "info" "Installing proxy cores and dependencies from SourceForge..."
-    echo -e "${YELLOW}--> Downloading and installing sing-box, xray-core, and chinadns-ng...${NC}"
     
-    # با حذف خروجی مخفی (>> LOG_FILE)، اجازه میدیم خود apk پراگرس دانلود رو زنده نشون بده
-    # اما خروجی خطاها رو با tee به فایل لاگ هم میفرستیم
-    if $INSTALL_CMD sing-box xray-core chinadns-ng 2>&1 | tee -a $LOG_FILE; then
-        log "success" "Cores installed successfully."
-    else
-        log "error" "Failed to install cores! Check logs."
-        return 1
-    fi
+    log "info" "Starting dependency installation from passwall_packages..."
+    download_package_smart "passwall_packages" "sing-box" || return 1
+    download_package_smart "passwall_packages" "xray-core" || return 1
+    download_package_smart "passwall_packages" "chinadns-ng" || return 1
 
-    log "info" "Installing Passwall 2 LuCI interfaces..."
-    echo -e "${YELLOW}--> Downloading and installing LuCI web interface and Persian language pack...${NC}"
+    log "info" "Starting Passwall 2 UI installation..."
+    download_package_smart "passwall2" "luci-app-passwall2" || return 1
+    download_package_smart "passwall2" "luci-i18n-passwall2-fa" || return 1
     
-    if $INSTALL_CMD luci-app-passwall2 luci-i18n-passwall2-fa 2>&1 | tee -a $LOG_FILE; then
-        log "success" "All components from SourceForge have been deployed flawlessly! 🔥"
-    else
-        log "error" "Installation encountered an issue. Review logs at: $LOG_FILE"
-        return 1
-    fi
+    log "success" "All components from SourceForge have been deployed flawlessly! 🔥"
+    rm -f /tmp/sf_index.html
 }
 
 setup_auto_update() {
