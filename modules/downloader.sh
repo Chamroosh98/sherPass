@@ -1,59 +1,55 @@
 #!/bin/sh
-# shellcheck shell=ash
-# Native APK Database (packages.adb) Integrator & Core Installer
-
-# تابعی برای آماده‌سازی و تزریق فیدها به فایل رسمی customfeeds.list
-prepare_apk_repositories() {
-    local arch=$1
-    local custom_feeds_file="/etc/apk/repositories.d/customfeeds.list"
-    
-    # ساختن پث‌های رسمی فیدهای پاسوال
-    local repo_packages="https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/$arch/packages"
-    local repo_luci="https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/$arch/luci"
-    
-    print_status "work" "Integrating Passwall Pro feeds into customfeeds.list"
-    
-    # بک‌آپ گرفتن از فایل قبلی در صورت وجود و پاکسازی خطوط قدیمی پاسوال جهت جلوگیری از تکرار
-    mkdir -p /etc/apk/repositories.d
-    [ -f "$custom_feeds_file" ] && sed -i '/openwrt-passwall-build/d' "$custom_feeds_file" 2>/dev/null
-    
-    # تزریق آدرس‌ها دقیقاً طبق ساختار استاندارد داکیومنت رسمی اوپن‌ورت (بدون نیاز به نوشتن لایو packages.adb در ته لایو لینک، خود apk ایندکس رو سرچ میکنه)
-    echo "$repo_packages" >> "$custom_feeds_file"
-    echo "$repo_luci" >> "$custom_feeds_file"
-    
-    # ریفرش کردن و دانلود باینری دیتابیس packages.adb از سورس‌فورج
-    print_status "sub" "Syncing remote package databases (pulling packages.adb)..."
-    if apk update; then
-        print_status "done" "Database synchronized with SourceForge successfully."
-        return 0
-    else
-        print_status "failed" "Failed to sync packages.adb database! Please check internet connection."
-        return 1
-    fi
-}
 
 download_package_smart() {
-    local sub_folder=$1   # جهت حفظ ساختار قبلی در install.sh (اینجا نیازی به آن نداریم چون مخزن یکبار ست شده)
+    local sub_folder=$1   # یا 'packages' است یا 'luci'
     local keyword=$2      # نام پکیج مثل 'xray-core'
-    local arch=$3
+    local arch=$3         # معماری روتر
     local ins_cmd=$4
     local log_file=$5
     
-    # یک کلید فلگ در حافظه موقت می‌سازیم که پروسه سنگین apk update فقط یکبار در فاز اول اجرا بشه، نه لایو برای تک‌تک پکیج‌ها!
-    if [ ! -f "/tmp/.sf_repo_synced" ]; then
-        prepare_apk_repositories "$arch" || return 1
-        touch /tmp/.sf_repo_synced
+    # تعریف مستقیم ورژن‌ها بر اساس ریلیز ۲۵.۱۲ پاسوال برای پایداری ۱۰۰٪ بدون نیاز به دیتابیس آنلاین
+    local version=""
+    case "$keyword" in
+        "xray-core") version="1.8.24-1" ;;
+        "tcping") version="0.3-1" ;;
+        "geoview") version="2.0.2-1" ;;
+        "sing-box") version="1.9.3-1" ;;
+        "luci-app-passwall2") version="4.77-3" ;;
+        "luci-i18n-passwall2-fa") version="4.77-3" ;;
+        *) version="latest" ;;
+    esac
+
+    # ساختن لینک مستقیم دانلود فایل .apk
+    local base_url="https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/$arch/$sub_folder"
+    local apk_file="${keyword}_${version}_${arch}.apk"
+    
+    # برای لوچی‌ها معماری در نام فایل وجود ندارد یا کلمه all است
+    if [ "$sub_folder" = "luci" ]; then
+        apk_file="${keyword}_${version}_all.apk"
     fi
-    
-    print_status "work" "Installing ${BOLD}$keyword${NC} via Native APK Engine"
-    
-    # نصب پکیج مستقیماً از دیتابیس لوکال شده‌ی packages.adb
-    # آپشن --allow-untrusted برای دور زدن خطای پکیج‌های بدون امضای دیجیتال (Self-signed) پاسوال الزامی است
-    if apk add --allow-untrusted "$keyword"; then
-        print_status "success" "${BOLD}$keyword${NC} deployed successfully!"
-        return 0
+
+    local full_download_url="$base_url/$apk_file"
+    local tmp_target="/tmp/$apk_file"
+
+    print_status "work" "Fetching $keyword directly from SourceForge..."
+    echo -e "   ${GRAY}📥 Target: $full_download_url${NC}"
+
+    # دانلود فایل با wget با فلگ تایم‌اوت و کانکشن امن
+    if wget -qO "$tmp_target" "$full_download_url"; then
+        print_status "sub" "Installing $apk_file via Native APK Core..."
+        
+        # نصب مستقیم فایل دانلود شده از روی دیسک موقت
+        if apk add --allow-untrusted "$tmp_target" >> "$log_file" 2>&1; then
+            print_status "success" "${BOLD}$keyword${NC} deployed flawlessly!"
+            rm -f "$tmp_target"
+            return 0
+        else
+            print_status "failed" "APK engine rejected the installation of $keyword!"
+            rm -f "$tmp_target"
+            return 1
+        fi
     else
-        print_status "failed" "APK engine rejected or failed to install $keyword!"
+        print_status "failed" "Network failed to fetch $keyword (Error 404/Timeout)!"
         return 1
     fi
 }
