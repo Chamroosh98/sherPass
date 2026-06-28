@@ -9,19 +9,25 @@ GRAY='\033[38;5;244m'
 NC='\033[0m'
 BOLD='\033[1m'
 
-# Pure Shell Live Spinner Animation
+# Pure Shell Live Spinner Animation compatible with BusyBox
 show_spinner() {
     local pid=$1
-    local delay=0.1
     local spinstr='|/-'
     echo -n "   "
     while [ -d "/proc/$pid" ]; do
         local temp=${spinstr#?}
         printf "${PURPLE}\b%c${NC}" "$spinstr"
         local spinstr=$temp${spinstr%"$temp"}
-        sleep $delay
+        
+        # استفاده از usleep به جای sleep اعشاری
+        # ۱۰۰۰۰۰ میکروثانیه معادل همان ۰.۱ ثانیه است
+        if command -v usleep >/dev/null 2>&1; then
+            usleep 100000
+        else
+            sleep 1
+        fi
     done
-    printf "\b\b" # Clean spinner characters up after finish
+    printf "\b\b"
 }
 
 # ASCII Box Border Header Menu
