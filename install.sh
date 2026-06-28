@@ -2,6 +2,7 @@
 
 clear
 
+
 echo -e "\033[38;5;141m┌───────────────────────────────────────────────┐\033[0m"
 echo -e "\033[38;5;141m│\033[0m   \033[1;38;5;51m⚡ sherPass Framework Engine Loading...     \033[0m\033[38;5;141m│\033[0m"
 echo -e "\033[38;5;141m├───────────────────────────────────────────────┤\033[0m"
@@ -11,7 +12,7 @@ echo -e "\033[38;5;141m└──────────────────
 LOG_FILE="/tmp/passwall_install.log"
 GITHUB_RAW_URL="https://raw.githubusercontent.com/Chamroosh98/sherPass/main"
 
-
+# تشخیص خودکار پکیج منیجر و معماری روتر
 if command -v apk >/dev/null 2>&1; then
     PKG_MGR="apk"; INSTALL_CMD="apk add --allow-untrusted"; REMOVE_CMD="apk del"
 else
@@ -29,42 +30,69 @@ fi
 if [ ! -f "./modules/config.sh" ] && [ "$1" != "--fallback-remote" ]; then
     mkdir -p /tmp/sherpass_space/modules
     
-    # دانلود تمام متعلقات به پوشه موقت دیسک
     wget -qO /tmp/sherpass_space/modules/config.sh "$GITHUB_RAW_URL/modules/config.sh"
     wget -qO /tmp/sherpass_space/modules/cleaner.sh "$GITHUB_RAW_URL/modules/cleaner.sh"
     wget -qO /tmp/sherpass_space/modules/downloader.sh "$GITHUB_RAW_URL/modules/downloader.sh"
     wget -qO /tmp/sherpass_space/modules/iran_rules.sh "$GITHUB_RAW_URL/modules/iran_rules.sh"
     wget -qO /tmp/sherpass_space/modules/cronjob.sh "$GITHUB_RAW_URL/modules/cronjob.sh"
+    wget -qO /tmp/sherpass_space/modules/validator.sh "$GITHUB_RAW_URL/modules/validator.sh"
     wget -qO /tmp/sherpass_space/install.sh "$GITHUB_RAW_URL/install.sh"
     
     cd /tmp/sherpass_space || exit 1
     exec sh install.sh --fallback-remote "$@"
 fi
 
-# لود کردن مطمئن ماژول‌ها به صورت لوکال
+# لود کردن تمام ماژول‌ها به صورت لوکال
 . ./modules/config.sh
 . ./modules/cleaner.sh
 . ./modules/downloader.sh
 . ./modules/iran_rules.sh
 . ./modules/cronjob.sh
+. ./modules/validator.sh
 
 [ "$1" = "--fallback-remote" ] && shift
 
 run_optimized_installation() {
+    local raw_input=""
+    local check_result=""
     local install_singbox="n"
-    echo -e "\n${YELLOW}⚡ Optimization Prompt:${NC}"
-    printf "Do you want to install ${BOLD}sing-box${NC} core? (Heavy on low-end devices) [y/N]: "
-    read install_singbox </dev/tty
     
+    echo -e "\n${YELLOW}⚡ Optimization Prompt:${NC}"
+    
+    # حلقه سخت‌گیرانه اعتبارسنجی ورودی و زبان کیبورد
+    while true; do
+        printf "Do you want to install ${BOLD}sing-box${NC} core? (Heavy on low-end devices) [y/n]: "
+        read raw_input </dev/tty
+        
+        # سپردن ارزیابی به ماژول تخصصی واشنگتن ورودی
+        check_result=$(validate_ascii_input "$raw_input")
+        
+        if [ "$check_result" = "non-ascii" ]; then
+            echo -e "${RED}[!] Error: Invalid characters detected. Please switch your keyboard to English!${NC}\n"
+            continue
+        fi
+        
+        if [ "$check_result" = "empty" ]; then
+            install_singbox="n"
+            break
+        fi
+
+        case "$check_result" in
+            [yY]) install_singbox="y"; break ;;
+            [nN]) install_singbox="n"; break ;;
+            *) echo -e "${RED}[!] Error: Invalid choice. Please enter only 'y' for Yes or 'n' for No.${NC}\n" ;;
+        esac
+    done
+    
+    # اجرای لایه زیرین
     run_environment_setup "$INSTALL_CMD" "$REMOVE_CMD" "$LOG_FILE"
     
     echo -e "\n${BOLD}${CYAN}[Phase 1/2: Deploying Micro Proxy Cores]${NC}"
-    # [مورد ۳] هدایت دقیق پث‌ها به ساختار رسمی سورس‌فورج با فایل فایل ایندکس استاندارد
     download_package_smart "packages" "xray-core" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
     download_package_smart "packages" "tcping" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
     download_package_smart "packages" "geoview" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
     
-    if [ "$install_singbox" = "y" ] || [ "$install_singbox" = "Y" ]; then
+    if [ "$install_singbox" = "y" ]; then
         download_package_smart "packages" "sing-box" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
     fi
 
