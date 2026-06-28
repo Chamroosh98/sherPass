@@ -7,28 +7,29 @@ XRAY_ASSET_DIR="/usr/share/xray"
 SINGBOX_ASSET_DIR="/usr/share/sing-box"
 
 update_dat_files() {
-    log "info" "Fetching latest Iran smart routing databases (DAT)..."
+    printf "${CYAN}➔${NC} Fetching latest Iran routing databases (DAT) ... "
     mkdir -p "$XRAY_ASSET_DIR" "$SINGBOX_ASSET_DIR"
-    wget -qO /tmp/geosite.dat "$URL_GEOSITE_IRAN"
-    wget -qO /tmp/geoip.dat "$URL_GEOIP_IRAN"
+    wget -qO /tmp/geosite.dat "$URL_GEOSITE_IRAN" &
+    wget -qO /tmp/geoip.dat "$URL_GEOIP_IRAN" &
+    show_spinner $!
 
     if [ ! -s /tmp/geosite.dat ] || [ ! -s /tmp/geoip.dat ]; then
-        log "error" "Database download failed! Check your internet connection."
+        echo -e "${RED}✘ Download failed!${NC}"
         return 1
     fi
+    echo -e "${GREEN}✔ Databases Fetched${NC}"
 
     cp /tmp/geosite.dat "$XRAY_ASSET_DIR/geosite.dat"
     cp /tmp/geoip.dat "$XRAY_ASSET_DIR/geoip.dat"
     cp /tmp/geosite.dat "$SINGBOX_ASSET_DIR/geosite.dat"
     cp /tmp/geoip.dat "$SINGBOX_ASSET_DIR/geoip.dat"
     
-    log "success" "Smart routing databases updated successfully."
     rm -f /tmp/geosite.dat /tmp/geoip.dat
     return 0
 }
 
 configure_uci_shunt() {
-    log "info" "Configuring Passwall Shunt routing rules via UCI..."
+    printf "${CYAN}➔${NC} Injecting UCI Passwall Shunt structures ... "
     local rule_index=0
     local found_ir_rule=false
     
@@ -58,7 +59,7 @@ configure_uci_shunt() {
     
     uci commit passwall
     /etc/init.d/passwall restart >/dev/null 2>&1
-    log "success" "Smart Shunt routing rules applied successfully!"
+    echo -e "${GREEN}✔ Shunt Routing Live!${NC}"
 }
 
 run_iran_rules_module() {

@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "architecture": "arm_cortex-a7_neon-vfpv4",
+  "packages": {
+    "luci-app-passwall2": "26.6.16-r1",
+    "luci-i18n-passwall2-fa": "26.6.16",
+    "luci-i18n-passwall2-ru": "26.6.16",
+    "luci-i18n-passwall2-zh-cn": "26.6.16",
+    "luci-i18n-passwall2-zh-tw": "26.6.16"
+  }
+}
