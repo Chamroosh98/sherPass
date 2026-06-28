@@ -2,20 +2,15 @@
 # shellcheck shell=ash
 # sherPass Core Orchestrator (Root Execution Layer)
 
-# پاکسازی آنی ترمینال در بدو ورود برای زیبایی و حس نیتیو بودن
 clear
 
-# بنر لودینگ سریع برای اینکه کاربر حس نکنه اسکریپت هنگ کرده
 echo -e "\033[38;5;141m┌───────────────────────────────────────────────┐\033[0m"
 echo -e "\033[38;5;141m│\033[0m   \033[1;38;5;51m⚡ sherPass Framework Engine Loading...     \033[0m\033[38;5;141m│\033[0m"
-echo -e "\033[38;5;141m├───────────────────────────────────────────────┤\033[0m"
-echo -e "\033[38;5;141m│\033[0m \033[38;5;244mPlease wait, pulling core modules from repo... \033[0m\033[38;5;141m│\033[0m"
 echo -e "\033[38;5;141m└───────────────────────────────────────────────┘\033[0m"
 
 LOG_FILE="/tmp/passwall_install.log"
 GITHUB_RAW_URL="https://raw.githubusercontent.com/Chamroosh98/sherPass/main"
 
-# ۱. تشخیص خودکار پکیج منیجر و معماری روتر
 if command -v apk >/dev/null 2>&1; then
     PKG_MGR="apk"; INSTALL_CMD="apk add --allow-untrusted"; REMOVE_CMD="apk del"
 else
@@ -29,11 +24,9 @@ else
 fi
 [ -z "$ARCH" ] && ARCH="arm_cortex-a7_neon-vfpv4"
 
-# ۲. حل مشکل اجرای آنلاین (One-Liner Execution Safeguard)
+# لودر آنلاین
 if [ ! -f "./modules/config.sh" ] && [ "$1" != "--fallback-remote" ]; then
     mkdir -p /tmp/sherpass_space/modules
-    
-    # دانلود تمام متعلقات ماژولار به پوشه موقت دیسک
     wget -qO /tmp/sherpass_space/modules/config.sh "$GITHUB_RAW_URL/modules/config.sh"
     wget -qO /tmp/sherpass_space/modules/cleaner.sh "$GITHUB_RAW_URL/modules/cleaner.sh"
     wget -qO /tmp/sherpass_space/modules/downloader.sh "$GITHUB_RAW_URL/modules/downloader.sh"
@@ -45,12 +38,11 @@ if [ ! -f "./modules/config.sh" ] && [ "$1" != "--fallback-remote" ]; then
     wget -qO /tmp/sherpass_space/modules/passwd.sh "$GITHUB_RAW_URL/modules/passwd.sh"
     wget -qO /tmp/sherpass_space/install.sh "$GITHUB_RAW_URL/install.sh"
     
-    # سوییچ کردن به دایرکتوری واقعی و اجرای اسکریپت ذخیره شده روی دیسک
     cd /tmp/sherpass_space || exit 1
     exec sh install.sh --fallback-remote "$@"
 fi
 
-# ۳. لود کردن مطمئن و ماژولار فایل‌های لوکال پوشه modules
+# اولویت اول: لود کردن کدهای پایه و رنگ‌ها جهت جلوگیری از خطای عدم شناسایی توابع
 . ./modules/config.sh
 . ./modules/cleaner.sh
 . ./modules/downloader.sh
@@ -61,7 +53,6 @@ fi
 . ./modules/network.sh
 . ./modules/passwd.sh
 
-# حذف آرگومان کمکی جهت تداخل نداشتن با لاجیک اصلی اسکریپت
 [ "$1" = "--fallback-remote" ] && shift
 
 run_optimized_installation() {
@@ -69,36 +60,29 @@ run_optimized_installation() {
     local check_result=""
     local install_singbox="n"
     
-    # اول: اجبار کاربر به تعریف پسورد در صورت نداشتن آن (بدون مشکل شبکه کار میکنه)
     enforce_root_password
 
     echo -e "\n${YELLOW}⚡ Optimization Prompt:${NC}"
-    
-    # حلقه سخت‌گیرانه اعتبارسنجی ورودی و زبان کیبورد انگلیسی
     while true; do
         printf "Do you want to install ${BOLD}sing-box${NC} core? (Heavy on low-end devices) [y/n]: "
-        read raw_input </dev/tty
-        
+        read -r raw_input </dev/tty
         check_result=$(validate_ascii_input "$raw_input")
         
         if [ "$check_result" = "non-ascii" ]; then
             echo -e "${RED}[!] Error: Invalid characters detected. Please switch your keyboard to English!${NC}\n"
             continue
         fi
-        
         if [ "$check_result" = "empty" ]; then
             install_singbox="n"
             break
         fi
-
         case "$check_result" in
             [yY]) install_singbox="y"; break ;;
             [nN]) install_singbox="n"; break ;;
-            *) echo -e "${RED}[!] Error: Invalid choice. Please enter only 'y' for Yes or 'n' for No.${NC}\n" ;;
+            *) echo -e "${RED}[!] Error: Invalid choice.${NC}\n" ;;
         esac
     done
     
-    # اجرای ماژول پاکسازی و آماده‌سازی بیس فریمور (دانلودها قبل از ریستارت شبکه انجام میشن)
     run_environment_setup "$INSTALL_CMD" "$REMOVE_CMD" "$LOG_FILE"
     
     echo -e "\n${BOLD}${CYAN}[Phase 1/2: Deploying Micro Proxy Cores]${NC}"
@@ -114,15 +98,12 @@ run_optimized_installation() {
     download_package_smart "luci" "luci-app-passwall2" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
     download_package_smart "luci" "luci-i18n-passwall2-fa" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
     
-    # فراخوانی ماژول اختصاصی تولید و جایگزینی بنر تلمتری سیستم
     generate_custom_banner
     
     echo -e "${GREEN}${BOLD}✔ Deployment flawless! Passwall 2 Pro is fully running. 🔥${NC}"
     
-    # دوم: تغییر آی‌پی روتر به 10.1.1.1 در آخرین بخش؛ جایی که کار اسکریپت تموم شده و ریست شبکه مشکلی ایجاد نمیکنه
     change_lan_ip
-    
-    echo -e "${YELLOW}👉 Please reconnect to your router using the new IP: ${BOLD}10.1.1.1${NC}"
+    echo -e "${YELLOW}👉 Please reconnect using the new IP: ${BOLD}10.1.1.1${NC}"
     exit 0
 }
 
@@ -131,7 +112,7 @@ if [ "$1" = "--update-rules" ]; then
     exit 0
 fi
 
-# منوی کاربری اصلی سیستم
+# منوی کاربری اصلی سیستم بدون تداخل استریم ورودی
 while true; do
     draw_header "$ARCH" "$PKG_MGR"
     echo -e "  ${PURPLE}[1]${NC} Optimized Installation ${GRAY}(Xray + Core UI + Clean-up)${NC}"
@@ -140,9 +121,14 @@ while true; do
     echo -e "  ${PURPLE}[4]${NC} Exit"
     echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
     printf "  Select an option [1-4]: "
-    read choice </dev/tty
     
-    case $choice in
+    # استفاده از فلگ -r برای امنیت کامل رشته ورودی در پورت فورواردینگ
+    read -r choice </dev/tty
+    
+    # اگر به هر دلیلی کانکشن در لحظه لود منو پکت لاست داشت و choice خالی شد، حلقه را متوقف نکن
+    [ -z "$choice" ] && continue
+    
+    case "$choice" in
         1) run_optimized_installation ;;
         2) run_iran_rules_module ;;
         3) setup_auto_update "$LOG_FILE" ;;
@@ -150,5 +136,5 @@ while true; do
         *) echo -e "${RED}Invalid Option!${NC}"; sleep 1 ;;
     esac
     echo -e "\nPress Enter to return to main menu..."
-    read _unused </dev/tty
+    read -r _unused </dev/tty
 done
