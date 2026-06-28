@@ -1,9 +1,17 @@
 #!/bin/sh
 
+clear
+
+echo -e "\033[38;5;141m┌───────────────────────────────────────────────┐\033[0m"
+echo -e "\033[38;5;141m│\033[0m   \033[1;38;5;51m⚡ sherPass Framework Engine Loading...     \033[0m\033[38;5;141m│\033[0m"
+echo -e "\033[38;5;141m├───────────────────────────────────────────────┤\033[0m"
+echo -e "\033[38;5;141m│\033[0m \033[38;5;244mPlease wait, pulling core modules from repo... \033[0m\033[38;5;141m│\033[0m"
+echo -e "\033[38;5;141m└───────────────────────────────────────────────┘\033[0m"
+
 LOG_FILE="/tmp/passwall_install.log"
 GITHUB_RAW_URL="https://raw.githubusercontent.com/Chamroosh98/sherPass/main"
 
-# ۱. تشخیص خودکار پکیج منیجر و معماری روتر
+
 if command -v apk >/dev/null 2>&1; then
     PKG_MGR="apk"; INSTALL_CMD="apk add --allow-untrusted"; REMOVE_CMD="apk del"
 else
@@ -17,10 +25,11 @@ else
 fi
 [ -z "$ARCH" ] && ARCH="arm_cortex-a7_neon-vfpv4"
 
-# ۲. حل مشکل اجرای آنلاین (One-Liner Execution Safeguard)
+# حل مشکل اجرای آنلاین (One-Liner Execution Safeguard)
 if [ ! -f "./modules/config.sh" ] && [ "$1" != "--fallback-remote" ]; then
     mkdir -p /tmp/sherpass_space/modules
     
+    # دانلود تمام متعلقات به پوشه موقت دیسک
     wget -qO /tmp/sherpass_space/modules/config.sh "$GITHUB_RAW_URL/modules/config.sh"
     wget -qO /tmp/sherpass_space/modules/cleaner.sh "$GITHUB_RAW_URL/modules/cleaner.sh"
     wget -qO /tmp/sherpass_space/modules/downloader.sh "$GITHUB_RAW_URL/modules/downloader.sh"
@@ -32,7 +41,7 @@ if [ ! -f "./modules/config.sh" ] && [ "$1" != "--fallback-remote" ]; then
     exec sh install.sh --fallback-remote "$@"
 fi
 
-# ۳. لود کردن مطمئن ماژول‌ها به صورت لوکال
+# لود کردن مطمئن ماژول‌ها به صورت لوکال
 . ./modules/config.sh
 . ./modules/cleaner.sh
 . ./modules/downloader.sh
@@ -50,7 +59,7 @@ run_optimized_installation() {
     run_environment_setup "$INSTALL_CMD" "$REMOVE_CMD" "$LOG_FILE"
     
     echo -e "\n${BOLD}${CYAN}[Phase 1/2: Deploying Micro Proxy Cores]${NC}"
-    # تغییر نام فولدرها به ساختار استاندارد سورس‌فورج (packages و luci)
+    # [مورد ۳] هدایت دقیق پث‌ها به ساختار رسمی سورس‌فورج با فایل فایل ایندکس استاندارد
     download_package_smart "packages" "xray-core" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
     download_package_smart "packages" "tcping" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
     download_package_smart "packages" "geoview" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
