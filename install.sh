@@ -1,4 +1,10 @@
 #!/bin/sh
+# shellcheck shell=ash
+# ==============================================================================
+#  sherPass Framework - Ultimate OpenWrt Deployment Engine
+#  Architect: Chamroosh (ch4mr0sh)
+#  Components: Modular Network Orchestrator [Direct / SOCKS5 Proxy / Fallback]
+# ==============================================================================
 
 clear
 
@@ -6,15 +12,17 @@ echo -e "\033[38;5;141m┌──────────────────
 echo -e "\033[38;5;141m│\033[0m   \033[1;38;5;51m⚡ sherPass Framework Engine Loading...     \033[0m\033[38;5;141m│\033[0m"
 echo -e "\033[38;5;141m└───────────────────────────────────────────────┘\033[0m"
 
-LOG_FILE="/tmp/passwall_install.log"
+LOG_FILE="/tmp/sherPass.log"
 GITHUB_RAW_URL="https://raw.githubusercontent.com/Chamroosh98/sherPass/main"
 
+# ۱. تشخیص خودکار مدیریت پکیج روتر
 if command -v apk >/dev/null 2>&1; then
     PKG_MGR="apk"; INSTALL_CMD="apk add --allow-untrusted"; REMOVE_CMD="apk del"
 else
     PKG_MGR="opkg"; INSTALL_CMD="opkg install"; REMOVE_CMD="opkg remove"
 fi
 
+# ۲. استخراج معماری دقیق سیستمی پردازنده
 if [ "$PKG_MGR" = "apk" ]; then
     ARCH=$(apk info -o kernel 2>/dev/null | grep -E -o 'arm_.*|mips_.*|x86_64|aarch64' | head -n 1)
 else
@@ -22,20 +30,28 @@ else
 fi
 [ -z "$ARCH" ] && ARCH="arm_cortex-a7_neon-vfpv4"
 
-# فراخوانی لودر آنلاین جدید (اگر فایل‌ها لوکال نباشند دانلودشان میکند)
+# ۳. دانلود و راه‌اندازی لودر آنلاین برای دریافت فایل‌های زیرمجموعه
 if [ -f "./modules/loader.sh" ]; then
     . ./modules/loader.sh
 else
     mkdir -p /tmp/sherpass_space/modules
-    wget -qO /tmp/sherpass_space/modules/loader.sh "$GITHUB_RAW_URL/modules/loader.sh"
+    # استفاده از curl مجهز به پروکسی در صورت فعال بودن (برای حل مشکل لود اولیه)
+    if command -v curl >/dev/null 2>&1; then
+        curl -sS -L --insecure --socks5-hostname 127.0.0.1:8090 -o /tmp/sherpass_space/modules/loader.sh "$GITHUB_RAW_URL/modules/loader.sh" 2>/dev/null
+    fi
+    # فال‌بک روی wget در صورتی که بالا شکست خورد
+    [ ! -f "/tmp/sherpass_space/modules/loader.sh" ] && wget -qO /tmp/sherpass_space/modules/loader.sh "$GITHUB_RAW_URL/modules/loader.sh"
+    
     . /tmp/sherpass_space/modules/loader.sh
 fi
+
+# اجرای فرآیند دانلود و لود داینامیک تمام سورس‌ها از گیت‌هاب (شامل پکیج‌های شبکه)
 run_online_loader "$GITHUB_RAW_URL" "$@"
 
-# لود کردن تمام ماژول‌های مجزا شده
+# ۴. امپورت ماژول‌های سبک و تفکیک‌شده (بخش لاجیک فشرده)
 . ./modules/config.sh
 . ./modules/cleaner.sh
-. ./modules/downloader.sh
+. /tmp/sherpass_space/modules/network/orchestrator.sh # لود ارکستراتور جدید شبکه
 . ./modules/iran_rules.sh
 . ./modules/cronjob.sh
 . ./modules/validator.sh
@@ -45,6 +61,7 @@ run_online_loader "$GITHUB_RAW_URL" "$@"
 
 [ "$1" = "--fallback-remote" ] && shift
 
+# ۵. پروسه اصلی نصب بهینه‌سازی شده (گزینه ۱)
 run_optimized_installation() {
     local raw_input=""
     local check_result=""
@@ -73,8 +90,21 @@ run_optimized_installation() {
         esac
     done
     
-    run_environment_setup "$INSTALL_CMD" "$REMOVE_CMD" "$LOG_FILE"
+    # اجرای پاکسازی هوشمند تداخل‌ها بدون حذف کردن کارهای نصب شده شیرپاس
+    echo -e "\n➔ Deep cleaning old/conflicting Passwall components..."
+    if ! apk info -e "luci-app-passwall2" >/dev/null 2>&1; then
+        echo -e "⚡ Executing Purge Sequence:"
+        for pkg in tcping geoview xray-plugin sing-box luci-app-passwall; do
+            if apk info -e "$pkg" >/dev/null 2>&1; then
+                apk del "$pkg" >/dev/null 2>&1
+                echo -e "   ${GREEN}✔ Successfully Removed: $pkg${NC}"
+            fi
+        done
+    else
+        echo -e "   ${GREEN}✔ Safe state detected. Skipping purge sequence to preserve active deployment!${NC}"
+    fi
     
+    # شروع فازهای دانلود با ارکستراتور ماژولار و زره‌پوش جدید
     echo -e "\n${BOLD}${CYAN}[Phase 1/2: Deploying Micro Proxy Cores]${NC}"
     download_package_smart "passwall_packages" "xray-core" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
     download_package_smart "passwall_packages" "tcping" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
@@ -102,7 +132,7 @@ if [ "$1" = "--update-rules" ]; then
     exit 0
 fi
 
-# منوی کاربری اصلی سیستم
+# ۶. هاب منوی اصلی و تعاملی سیستم (کامپوننت لوپ)
 while true; do
     draw_header "$ARCH" "$PKG_MGR"
     echo -e "  ${PURPLE}[1]${NC} Optimized Installation ${GRAY}(Xray + Core UI + Clean-up)${NC}"
