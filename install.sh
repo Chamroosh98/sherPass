@@ -35,29 +35,30 @@ if [ -f "./modules/loader.sh" ]; then
     . ./modules/loader.sh
 else
     mkdir -p /tmp/sherpass_space/modules
-    # استفاده از curl مجهز به پروکسی در صورت فعال بودن (برای حل مشکل لود اولیه)
     if command -v curl >/dev/null 2>&1; then
         curl -sS -L --insecure --socks5-hostname 127.0.0.1:8090 -o /tmp/sherpass_space/modules/loader.sh "$GITHUB_RAW_URL/modules/loader.sh" 2>/dev/null
     fi
-    # فال‌بک روی wget در صورتی که بالا شکست خورد
     [ ! -f "/tmp/sherpass_space/modules/loader.sh" ] && wget -qO /tmp/sherpass_space/modules/loader.sh "$GITHUB_RAW_URL/modules/loader.sh"
     
     . /tmp/sherpass_space/modules/loader.sh
 fi
 
-# اجرای فرآیند دانلود و لود داینامیک تمام سورس‌ها از گیت‌هاب (شامل پکیج‌های شبکه)
+# اجرای فرآیند دانلود و لود داینامیک تمام سورس‌ها از گیت‌هاب (شامل دایرکتوری network)
 run_online_loader "$GITHUB_RAW_URL" "$@"
 
-# ۴. امپورت ماژول‌های سبک و تفکیک‌شده (بخش لاجیک فشرده)
-. ./modules/config.sh
-. ./modules/cleaner.sh
-. /tmp/sherpass_space/modules/network/orchestrator.sh # لود ارکستراتور جدید شبکه
-. ./modules/iran_rules.sh
-. ./modules/cronjob.sh
-. ./modules/validator.sh
-. ./modules/banner.sh
-. ./modules/network.sh
-. ./modules/passwd.sh
+# 📌 تعریف مسیر ثابت، مطلق و واحد برای تمام ماژول‌ها در حافظه موقت روتر
+BASE_MODULES="/tmp/sherpass_space/modules"
+
+# ۴. امپورت ماژول‌های سبک و تفکیک‌شده (کاملاً یکدست و مقتدر)
+. "$BASE_MODULES/config.sh"
+. "$BASE_MODULES/cleaner.sh"
+. "$BASE_MODULES/network/orchestrator.sh"  # لود ارکستراتور جدید شبکه از پوشه اختصاصی
+. "$BASE_MODULES/iran_rules.sh"
+. "$BASE_MODULES/cronjob.sh"
+. "$BASE_MODULES/validator.sh"
+. "$BASE_MODULES/banner.sh"
+. "$BASE_MODULES/network.sh"
+. "$BASE_MODULES/passwd.sh"
 
 [ "$1" = "--fallback-remote" ] && shift
 
