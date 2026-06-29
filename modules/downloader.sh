@@ -28,7 +28,9 @@ download_package_smart() {
     #     apk_file="${keyword}_${version}_all.apk"
     # fi
 
-    local full_download_url="$base_url/$apk_file"
+    # local full_download_url="$base_url/$apk_file"
+    local full_download_url="$base_url/"
+
     local tmp_target="/tmp/$apk_file"
 
     print_status "work" "Fetching $keyword directly from SourceForge..."
