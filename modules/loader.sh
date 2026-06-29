@@ -1,27 +1,40 @@
 #!/bin/sh
 # shellcheck shell=ash
+# sherPass Dynamic Component Loader with Sub-Directory Support
 
 run_online_loader() {
-    local github_url=$1
-    shift
+    local base_url=$1
+    local remote_space="/tmp/sherpass_space/modules"
     
-    if [ ! -f "./modules/config.sh" ] && [ "$1" != "--fallback-remote" ]; then
-        mkdir -p /tmp/sherpass_space/modules
-        
-        # دانلود ماژول‌ها از گیت‌هاب
-        wget -qO /tmp/sherpass_space/modules/config.sh "$github_url/modules/config.sh"
-        wget -qO /tmp/sherpass_space/modules/cleaner.sh "$github_url/modules/cleaner.sh"
-        wget -qO /tmp/sherpass_space/modules/downloader.sh "$github_url/modules/downloader.sh"
-        wget -qO /tmp/sherpass_space/modules/iran_rules.sh "$github_url/modules/iran_rules.sh"
-        wget -qO /tmp/sherpass_space/modules/cronjob.sh "$github_url/modules/cronjob.sh"
-        wget -qO /tmp/sherpass_space/modules/validator.sh "$github_url/modules/validator.sh"
-        wget -qO /tmp/sherpass_space/modules/banner.sh "$github_url/modules/banner.sh"
-        wget -qO /tmp/sherpass_space/modules/network.sh "$github_url/modules/network.sh"
-        wget -qO /tmp/sherpass_space/modules/passwd.sh "$github_url/modules/passwd.sh"
-        wget -qO /tmp/sherpass_space/modules/loader.sh "$github_url/modules/loader.sh"
-        wget -qO /tmp/sherpass_space/install.sh "$github_url/install.sh"
-        
-        cd /tmp/sherpass_space || exit 1
-        exec sh install.sh --fallback-remote "$@"
-    fi
+    # تعریف لیست تمام ماژول‌های استاندارد در روتِ modules
+    local core_modules="config cleaner iran_rules cronjob validator banner network passwd"
+    
+    # تعریف لیست ماژول‌های جدید دایرکتوری network
+    local network_modules="menu direct proxy orchestrator"
+
+    # ساخت دایرکتوری‌های لازم در رم روتر
+    mkdir -p "$remote_space/network"
+    cd "$remote_space" || return 1
+
+    # فلگ‌های برنده‌ی curl شما برای عبور از فیلترینگ گیت‌هاب حین دانلود ماژول‌ها
+    local curl_opts="-sS -L --insecure --connect-timeout 6 --socks5-hostname 127.0.0.1:8090"
+
+    # ۱. دانلود ماژول‌های اصلی روت
+    for mod in $core_modules; do
+        if [ ! -f "./${mod}.sh" ]; then
+            curl $curl_opts -o "./${mod}.sh" "$base_url/modules/${mod}.sh" 2>/dev/null
+            [ ! -f "./${mod}.sh" ] && wget -qO "./${mod}.sh" "$base_url/modules/${mod}.sh"
+        fi
+    done
+
+    # ۲. دانلود ماژول‌های زیرمجموعه پوشه network (حل مشکل ارور خط ۵۴)
+    for net_mod in $network_modules; do
+        if [ ! -f "./network/${net_mod}.sh" ]; then
+            curl $curl_opts -o "./network/${net_mod}.sh" "$base_url/modules/network/${net_mod}.sh" 2>/dev/null
+            [ ! -f "./network/${net_mod}.sh" ] && wget -qO "./network/${net_mod}.sh" "$base_url/modules/network/${net_mod}.sh"
+        fi
+    done
+    
+    # بازگشت به مسیر پیش‌فرض حافظه موقت جهت امپورت بی‌دردسر
+    cd /tmp/sherpass_space || return 1
 }
