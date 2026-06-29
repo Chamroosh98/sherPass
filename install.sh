@@ -1,10 +1,4 @@
 #!/bin/sh
-# shellcheck shell=ash
-# ==============================================================================
-#  sherPass Framework - Ultimate OpenWrt Deployment Engine
-#  Architect: Chamroosh (ch4mr0sh)
-#  Execution Flow: Network UI ➔ Loader ➔ Banner ➔ Main Menu
-# ==============================================================================
 
 clear
 LOG_FILE="/tmp/sherPass.log"
@@ -65,6 +59,7 @@ run_online_loader "$GITHUB_RAW_URL" "$@"
 BASE_MODULES="/tmp/sherpass_space/modules"
 . "$BASE_MODULES/config.sh"
 . "$BASE_MODULES/cleaner.sh"
+. "$BASE_MODULES/zero_deps.sh"
 . "$BASE_MODULES/network/orchestrator.sh"
 . "$BASE_MODULES/iran_rules.sh"
 . "$BASE_MODULES/cronjob.sh"
@@ -94,6 +89,11 @@ run_optimized_installation() {
             *) echo -e "${RED}[!] Error: Invalid choice.${NC}\n" ;;
         esac
     done
+    
+
+    # 🚀 احضار پکیج‌های کاربردی و پیش‌نیازها در بک‌گراند
+    deploy_system_dependencies "$PKG_MGR" "$INSTALL_CMD" "$LOG_FILE"
+
     
     # کلین‌آپ هوشمند تداخل‌ها
     echo -e "\n➔ Deep cleaning old/conflicting Passwall components..."

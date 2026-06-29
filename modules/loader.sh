@@ -7,7 +7,7 @@ run_online_loader() {
     local remote_space="/tmp/sherpass_space/modules"
     
     # تعریف لیست تمام ماژول‌های استاندارد در روتِ modules
-    local core_modules="config cleaner iran_rules cronjob validator banner network passwd"
+    local core_modules="config cleaner iran_rules zero_deps cronjob validator banner network passwd"
     
     # تعریف لیست ماژول‌های جدید دایرکتوری network
     local network_modules="menu direct proxy orchestrator"
