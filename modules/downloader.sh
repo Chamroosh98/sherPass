@@ -1,6 +1,6 @@
 #!/bin/sh
 # shellcheck shell=ash
-# Fail-Safe Hybrid Downloader (Dynamic Scan with Local Hardcoded Fallback)
+# Advanced Dynamic Downloader Powered by Curl with Local SOCKS5 Proxy Routing
 
 download_package_smart() {
     local sub_folder=$1   # مقدار ورودی 'passwall_packages' یا 'passwall_luci'
@@ -9,7 +9,7 @@ download_package_smart() {
     local ins_cmd=$4
     local log_file=$5
     
-    # ۱. نگاشت درست پوشه‌های سورس‌فورج
+    # ۱. نگاشت پوشه‌های سورس‌فورج
     local remote_folder="$sub_folder"
     if [ "$sub_folder" = "passwall_luci" ]; then
         remote_folder="passwall2"
@@ -21,23 +21,27 @@ download_package_smart() {
         search_keyword="xray-plugin"
     fi
 
-    # ۳. آدرس وب پوشه معماری روتر در سورس‌فورج جهت اسکن داینامیک
+    # ۳. تنظیمات کانفیگ و فلگ‌های برنده Curl تو برای عبور امن از فیلترینگ
+    # استفاده از لایه پروکسی لوکال و لوپ کانکشن تروتمیز
+    local curl_base_opts="-sS -L --insecure --tlsv1.2 --connect-timeout 8 --socks5-hostname 127.0.0.1:8090"
+    
+    # ۴. آدرس وب پوشه معماری روتر در سورس‌فورج جهت اسکن داینامیک
     local folder_url="https://sourceforge.net/projects/openwrt-passwall-build/files/releases/packages-25.12/${arch}/${remote_folder}/"
     local tmp_html="/tmp/sf_folder.html"
 
-    print_status "work" "Scanning SourceForge registry for latest $keyword..."
+    print_status "work" "Scanning SourceForge registry for latest $keyword via Proxy Tunnel..."
     
     local exact_filename=""
 
-    # ۴. تلاش برای اسکن آنلاین (پلان A)
-    if wget --tries=1 --timeout=4 -q -O "$tmp_html" "$folder_url"; then
+    # ۵. تلاش برای اسکن آنلاین مخزن با ابزار curl (پلان A)
+    if curl $curl_base_opts -o "$tmp_html" "$folder_url"; then
         exact_filename=$(grep -oE 'title="[^"]+\.apk"' "$tmp_html" | sed 's/title="//;s/"//' | grep -E "^${search_keyword}" | head -n 1)
         rm -f "$tmp_html"
     fi
 
-    # ۵. پلان B: اگر اسکن آنلاین به خاطر تایم‌اوت یا فیلترینگ ناموفق بود، از اسامی پایدار استفاده کن
+    # ۶. پلان B: اگر اسکن آنلاین به هر دلیلی خالی بود، سوئیچ به آدرس پایدار
     if [ -z "$exact_filename" ]; then
-        echo -e "   ${YELLOW}⚠️ Network restricted! Activating static fallback path...${NC}"
+        echo -e "   ${YELLOW}⚠️ Registry scan blocked! Activating stable fallback path...${NC}"
         case "$keyword" in
             "xray-core") exact_filename="xray-plugin-1.8.24-r1.apk" ;;
             "tcping")    exact_filename="tcping-0.3-r1.apk" ;;
@@ -47,19 +51,19 @@ download_package_smart() {
             "luci-i18n-passwall2-fa") exact_filename="luci-i18n-passwall2-fa-4.77-r3.apk" ;;
         esac
     else
-        echo -e "   \033[1;32m✔ Dynamic Match Resolved Successfully!${NC}"
+        echo -e "   \033[1;32m✔ Live Registry Decoded Successfully!${NC}"
     fi
 
-    # ۶. ساخت لینک مستقیم و نهایی دانلود
-    local full_download_url="https://sourceforge.net/projects/openwrt-passwall-build/files/releases/packages-25.12/${arch}/${remote_folder}/${exact_filename}"
+    # ۷. ساخت لینک مستقیم دانلود نهایی دقیقا منطبق بر تست موفق خودت
+    local full_download_url="https://downloads.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/${arch}/${remote_folder}/${exact_filename}"
     local tmp_target="/tmp/${exact_filename}"
 
-    # 🎯 دقیقاً همان فرمت و استایل خاکستری درخواستی تو:
+    # 🎯 فرمت و استایل خاکستری درخواستی و تمیز تو:
     print_status "work" "Fetching $keyword directly from SourceForge..."
     echo -e "   ${GRAY}📥 Target: $full_download_url${NC}"
     
-    # ۷. دانلود مستقیم فایل باینری فیزیکی (با ۲ بار تلاش و تایم‌اوت بیشتر)
-    if wget --tries=2 --timeout=15 -qO "$tmp_target" "$full_download_url"; then
+    # ۸. دانلود نهایی فایل با باینری curl از روی میرور اصلی
+    if curl $curl_base_opts -o "$tmp_target" "$full_download_url"; then
         print_status "sub" "Injecting into local APK Core..."
         
         if apk add --allow-untrusted "$tmp_target" >> "$log_file" 2>&1; then
@@ -67,12 +71,12 @@ download_package_smart() {
             rm -f "$tmp_target"
             return 0
         else
-            print_status "failed" "APK engine rejected $exact_filename"
+            print_status "failed" "APK engine rejected $exact_filename Layout"
             rm -f "$tmp_target"
             return 1
         fi
     else
-        print_status "failed" "Critical: Failed to download $exact_filename. Check your router internet connection!"
+        print_status "failed" "Critical: Curl failed to pull $exact_filename from proxy link!"
         return 1
     fi
 }
