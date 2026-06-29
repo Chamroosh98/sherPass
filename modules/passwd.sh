@@ -1,15 +1,17 @@
 #!/bin/sh
-# Root Password Enforcement Module
+# shellcheck shell=ash
+# Root Password Enforcement Module (BusyBox Compliant)
 
 enforce_root_password() {
     local root_pass_status
     root_pass_status=$(grep '^root:' /etc/shadow | cut -d: -f2)
 
+    # اگر پسورد از قبل ست شده باشد و علامت ! یا * یا خالی نباشد، رد شو
     if [ "$root_pass_status" != "!" ] && [ -n "$root_pass_status" ] && [ "$root_pass_status" != "*" ]; then
         return 0
     fi
 
-    echo "⚠️ SECURITY ALERT: ROOT PASSWORD IS NOT DEFINED!"
+    echo -e "\n\033[1;31m⚠️ SECURITY ALERT: ROOT PASSWORD IS NOT DEFINED!\033[0m"
     local new_pass=""
     
     while true; do
@@ -18,14 +20,16 @@ enforce_root_password() {
         new_pass=$(echo "$new_pass" | tr -d ' ')
         
         if [ -z "$new_pass" ] || [ ${#new_pass} -lt 4 ]; then
-            echo "[!] Error: Password too short!"
+            echo -e "[!] Error: Password must be at least 4 characters long!\n"
             continue
         fi
         
-        echo "root:$new_pass" | chpasswd
+        (echo "$new_pass"; sleep 1; echo "$new_pass") | passwd root >/dev/null 2>&1
+        
         if [ $? -eq 0 ]; then
-            echo "✔ Root password securely registered!"
+            echo -e "\033[1;32m✔ Root password securely registered!\033[0m\n"
             break
         fi
+        echo -e "[!] Error: Failed to set password. Try again.\n"
     done
 }

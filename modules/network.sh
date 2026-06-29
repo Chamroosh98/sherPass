@@ -1,5 +1,6 @@
 #!/bin/sh
-# LAN IP Changer Module
+# shellcheck shell=ash
+# LAN IP Changer Module (OpenWrt UBUS Compliant)
 
 change_lan_ip() {
     local target_ip="10.1.1.1"
@@ -10,9 +11,12 @@ change_lan_ip() {
         return 0
     fi
 
-    # استفاده از echo ساده به جای print_status تا اگر هنوز config.sh لود نشده بود اسکریپت کرش نکند
-    echo "➔ Changing OpenWrt LAN IP to $target_ip..."
+    echo -e "\n\033[1;35m➔ Migrating OpenWrt LAN IP address to $target_ip...\033[0m"
+    
     uci set network.lan.ipaddr="$target_ip"
     uci commit network
+    
+    # ریستارت زیرساخت شبکه و وب‌سرور لوچی برای اعمال روی ساب‌نت جدید
     /etc/init.d/network restart >/dev/null 2>&1
+    /etc/init.d/uhttpd restart >/dev/null 2>&1
 }
