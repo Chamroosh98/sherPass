@@ -7,70 +7,65 @@ download_package_smart() {
     local ins_cmd=$4
     local log_file=$5
     
-    # ۱. تنظیم نام پوشه فیزیکی روی سرور سورس‌فورج بر اساس ورودی اسکریپت اصلی
-    local remote_folder="passwall_packages"
+    # ۱. نگاشت درست پوشه‌های سورس‌فورج
+    local remote_folder="$sub_folder"
     if [ "$sub_folder" = "passwall_luci" ]; then
         remote_folder="passwall2"
     fi
 
-    # ۲. ست کردن دقیق ورژن‌ها و اسامی فایل‌ها بر اساس واقعیت ریپوزیتوری ۲۵.۱۲
-    local version=""
-    local file_name=""
+    # ۲. اصلاح کلمه‌ی کلیدی بر اساس واقعیت نام‌گذاری فایل باینری xray
+    local search_keyword="$keyword"
+    if [ "$keyword" = "xray-core" ]; then
+        search_keyword="xray-plugin"
+    fi
+
+    # ۳. آدرس وب پوشه معماری روتر در سورس‌فورج
+    local folder_url="https://sourceforge.net/projects/openwrt-passwall-build/files/releases/packages-25.12/${arch}/${remote_folder}/"
+    local tmp_html="/tmp/sf_folder.html"
+
+    print_status "work" "Scanning SourceForge for latest $keyword..."
+
+    # ۴. دانلود صفحه وب جهت استخراج نام دقیق فایل‌ها
+    if ! wget -q -O "$tmp_html" "$folder_url"; then
+        print_status "failed" "Network error: Unable to reach SourceForge repository!"
+        return 1
+    fi
+
+    # ۵. استخراج داینامیک نام کامل فایل (بدون وابستگی به فرمت ورژن یا معماری)
+    # این دستور دنبال هر فایلی می‌گردد که با نام پکیج شروع شده و به .apk ختم می‌شود
+    local exact_filename=""
+    exact_filename=$(grep -oE 'title="[^"]+\.apk"' "$tmp_html" | sed 's/title="//;s/"//' | grep -E "^${search_keyword}" | head -n 1)
+
+    rm -f "$tmp_html" # پاکسازی رم
+
+    if [ -z "$exact_filename" ]; then
+        print_status "failed" "Could not find any online binary matching: $search_keyword"
+        return 1
+    fi
+
+    echo -e "   \033[1;32m✔ Dynamic Match Found:\033[0m $exact_filename"
+
+    # ۶. ساخت لینک مستقیم و نهایی دقیقاً مشابه ساختار برنده تو
+    local download_url="https://sourceforge.net/projects/openwrt-passwall-build/files/releases/packages-25.12/${arch}/${remote_folder}/${exact_filename}"
+    local tmp_target="/tmp/${exact_filename}"
+
+    print_status "sub" "Downloading payload directly..."
     
-    case "$keyword" in
-        "xray-core")
-            version="1.8.24-r1"
-            # طبق لاگ تست خودت، نام فایل روی سرور xray-plugin است
-            file_name="xray-plugin_${version}_${arch}.apk"
-            ;;
-        "tcping")
-            version="0.3-r1"
-            file_name="tcping_${version}_${arch}.apk"
-            ;;
-        "geoview")
-            version="2.0.2-r1"
-            file_name="geoview_${version}_${arch}.apk"
-            ;;
-        "sing-box")
-            version="1.9.3-r1"
-            file_name="sing-box_${version}_${arch}.apk"
-            ;;
-        "luci-app-passwall2")
-            version="4.77-r3"
-            file_name="luci-app-passwall2_${version}_all.apk"
-            ;;
-        "luci-i18n-passwall2-fa")
-            version="4.77-r3"
-            file_name="luci-i18n-passwall2-fa_${version}_all.apk"
-            ;;
-        *)
-            print_status "failed" "Unknown package: $keyword"
-            return 1
-            ;;
-    esac
-
-    # ۳. لینک ۱۰۰٪ درست سورس‌فورج (بخش /files/ به جای /releases/) همراه با چسباندن /download
-    local full_download_url="https://sourceforge.net/projects/openwrt-passwall-build/files/releases/packages-25.12/${arch}/${remote_folder}/${file_name}/download"
-    local tmp_target="/tmp/${file_name}"
-
-    print_status "work" "Fetching $keyword directly from SourceForge..."
-    echo -e "   ${GRAY}📥 Target: $full_download_url${NC}"
-
-    # ۴. دانلود و نصب آفلاین محلی
-    if wget -qO "$tmp_target" "$full_download_url"; then
-        print_status "sub" "Installing $file_name via Native APK Core..."
+    # دانلود مستقیم و نصب آفلاین محلی
+    if wget -qO "$tmp_target" "$download_url"; then
+        print_status "sub" "Injecting into local APK Core..."
         
         if apk add --allow-untrusted "$tmp_target" >> "$log_file" 2>&1; then
-            print_status "success" "${BOLD}$keyword${NC} deployed flawlessly!"
+            print_status "success" "${BOLD}$keyword${NC} deployed successfully!"
             rm -f "$tmp_target"
             return 0
         else
-            print_status "failed" "APK engine rejected the installation of $keyword!"
+            print_status "failed" "APK engine rejected $exact_filename"
             rm -f "$tmp_target"
             return 1
         fi
     else
-        print_status "failed" "Network failed to fetch $keyword (Error 404/Timeout)!"
+        print_status "failed" "Failed to download $exact_filename (Network/Mirror error)!"
         return 1
     fi
 }
