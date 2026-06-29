@@ -1,6 +1,4 @@
 #!/bin/sh
-# shellcheck shell=ash
-# sherPass Core Orchestrator (Root Execution Layer)
 
 clear
 
@@ -24,25 +22,17 @@ else
 fi
 [ -z "$ARCH" ] && ARCH="arm_cortex-a7_neon-vfpv4"
 
-# لودر آنلاین
-if [ ! -f "./modules/config.sh" ] && [ "$1" != "--fallback-remote" ]; then
+# فراخوانی لودر آنلاین جدید (اگر فایل‌ها لوکال نباشند دانلودشان میکند)
+if [ -f "./modules/loader.sh" ]; then
+    . ./modules/loader.sh
+else
     mkdir -p /tmp/sherpass_space/modules
-    wget -qO /tmp/sherpass_space/modules/config.sh "$GITHUB_RAW_URL/modules/config.sh"
-    wget -qO /tmp/sherpass_space/modules/cleaner.sh "$GITHUB_RAW_URL/modules/cleaner.sh"
-    wget -qO /tmp/sherpass_space/modules/downloader.sh "$GITHUB_RAW_URL/modules/downloader.sh"
-    wget -qO /tmp/sherpass_space/modules/iran_rules.sh "$GITHUB_RAW_URL/modules/iran_rules.sh"
-    wget -qO /tmp/sherpass_space/modules/cronjob.sh "$GITHUB_RAW_URL/modules/cronjob.sh"
-    wget -qO /tmp/sherpass_space/modules/validator.sh "$GITHUB_RAW_URL/modules/validator.sh"
-    wget -qO /tmp/sherpass_space/modules/banner.sh "$GITHUB_RAW_URL/modules/banner.sh"
-    wget -qO /tmp/sherpass_space/modules/network.sh "$GITHUB_RAW_URL/modules/network.sh"
-    wget -qO /tmp/sherpass_space/modules/passwd.sh "$GITHUB_RAW_URL/modules/passwd.sh"
-    wget -qO /tmp/sherpass_space/install.sh "$GITHUB_RAW_URL/install.sh"
-    
-    cd /tmp/sherpass_space || exit 1
-    exec sh install.sh --fallback-remote "$@"
+    wget -qO /tmp/sherpass_space/modules/loader.sh "$GITHUB_RAW_URL/modules/loader.sh"
+    . /tmp/sherpass_space/modules/loader.sh
 fi
+run_online_loader "$GITHUB_RAW_URL" "$@"
 
-# اولویت اول: لود کردن کدهای پایه و رنگ‌ها جهت جلوگیری از خطای عدم شناسایی توابع
+# لود کردن تمام ماژول‌های مجزا شده
 . ./modules/config.sh
 . ./modules/cleaner.sh
 . ./modules/downloader.sh
@@ -86,17 +76,17 @@ run_optimized_installation() {
     run_environment_setup "$INSTALL_CMD" "$REMOVE_CMD" "$LOG_FILE"
     
     echo -e "\n${BOLD}${CYAN}[Phase 1/2: Deploying Micro Proxy Cores]${NC}"
-    download_package_smart "packages" "xray-core" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
-    download_package_smart "packages" "tcping" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
-    download_package_smart "packages" "geoview" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
+    download_package_smart "passwall_packages" "xray-core" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
+    download_package_smart "passwall_packages" "tcping" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
+    download_package_smart "passwall_packages" "geoview" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
     
     if [ "$install_singbox" = "y" ]; then
-        download_package_smart "packages" "sing-box" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
+        download_package_smart "passwall_packages" "sing-box" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
     fi
 
     echo -e "${BOLD}${CYAN}[Phase 2/2: Injecting LuCI User Interfaces]${NC}"
-    download_package_smart "luci" "luci-app-passwall2" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
-    download_package_smart "luci" "luci-i18n-passwall2-fa" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
+    download_package_smart "passwall_luci" "luci-app-passwall2" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
+    download_package_smart "passwall_luci" "luci-i18n-passwall2-fa" "$ARCH" "$INSTALL_CMD" "$LOG_FILE" || return 1
     
     generate_custom_banner
     
@@ -112,7 +102,7 @@ if [ "$1" = "--update-rules" ]; then
     exit 0
 fi
 
-# منوی کاربری اصلی سیستم بدون تداخل استریم ورودی
+# منوی کاربری اصلی سیستم
 while true; do
     draw_header "$ARCH" "$PKG_MGR"
     echo -e "  ${PURPLE}[1]${NC} Optimized Installation ${GRAY}(Xray + Core UI + Clean-up)${NC}"
@@ -122,10 +112,7 @@ while true; do
     echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
     printf "  Select an option [1-4]: "
     
-    # استفاده از فلگ -r برای امنیت کامل رشته ورودی در پورت فورواردینگ
     read -r choice </dev/tty
-    
-    # اگر به هر دلیلی کانکشن در لحظه لود منو پکت لاست داشت و choice خالی شد، حلقه را متوقف نکن
     [ -z "$choice" ] && continue
     
     case "$choice" in
