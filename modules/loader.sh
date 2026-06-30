@@ -7,11 +7,11 @@
 # ==============================================================================
 
 # shellcheck shell=ash
-# sherPass Dynamic Component Loader with Sub-Directory Support
+# DayPass Dynamic Component Loader with Sub-Directory Support
 
 run_online_loader() {
     local base_url=$1
-    local remote_space="/tmp/sherpass_space/modules"
+    local remote_space="/tmp/DayPass_space/modules"
     
     # تعریف لیست تمام ماژول‌های استاندارد در روتِ modules
     local core_modules="config cleaner iran_rules zero_deps cronjob validator banner network passwd"
@@ -43,5 +43,5 @@ run_online_loader() {
     done
     
     # بازگشت به مسیر پیش‌فرض حافظه موقت جهت امپورت بی‌دردسر
-    cd /tmp/sherpass_space || return 1
+    cd /tmp/DayPass_space || return 1
 }

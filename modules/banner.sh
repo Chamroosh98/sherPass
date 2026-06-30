@@ -25,7 +25,7 @@ generate_custom_banner() {
     local public_ip=$(curl -s --connect-timeout 4 https://api.ipify.org 2>/dev/null)
     [ -z "$public_ip" ] && public_ip="No Internet / Blocked"
 
-    print_status "work" "Injecting brand-new sherPass telemetry banner into /etc/banner"
+    print_status "work" "Injecting brand-new DayPass telemetry banner into /etc/banner"
 
     cat << EOF > "$banner_file"
        __                      ____                 

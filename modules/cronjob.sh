@@ -14,7 +14,7 @@ setup_auto_update() {
     print_status "work" "Binding cron synchronization configurations"
     
     # آدرس اجرای خودکار مستقیم از روت مخزن گیت‌هاب شما
-    local github_cmd="wget -qO- https://raw.githubusercontent.com/Chamroosh98/sherPass/main/install.sh | sh -s -- --update-rules"
+    local github_cmd="wget -qO- https://raw.githubusercontent.com/Chamroosh98/DayPass/main/install.sh | sh -s -- --update-rules"
     local cron_cmd="0 4 * * * $github_cmd"
     
     (crontab -l 2>/dev/null | grep -v "update-rules"; echo "$cron_cmd") | crontab -

@@ -1,14 +1,14 @@
 #!/bin/sh
 # shellcheck shell=ash
 # ==============================================================================
-#  sherPass Framework - Core Network Orchestrator Logic Component
+#  DayPass Framework - Core Network Orchestrator Logic Component
 #  Architect: Chamroosh (ch4mr0sh)
 #  Function: Multi-Engine Pulling, Smart Verification & Resilient Fallback
 # ==============================================================================
 
 download_package_smart() {
     local sub_folder=$1 local keyword=$2 local arch=$3 local ins_cmd=$4 local log_file=$5
-    local space_path="/tmp/sherpass_space/modules/network"
+    local space_path="/tmp/DayPass_space/modules/network"
 
     # ۱. Smart Check (بررسی هوشمند برای جلوگیری از دانلود تکراری و اتلاف حجم)
     if apk info -e "$keyword" >/dev/null 2>&1 || [ "$keyword" = "xray-core" ] && apk info -e "xray-plugin" >/dev/null 2>&1; then
