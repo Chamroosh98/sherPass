@@ -7,7 +7,7 @@ run_online_loader() {
     local log_file="/tmp/DayPass.log"
 
     # لیست تمام ماژول‌های اصلی مستقر در پوشه modules
-    local core_modules="config cleaner packages iran_rules cronjob validator banner network passwd"
+    local core_modules="config cleaner zero_deps iran_rules cronjob validator banner network passwd"
     
     # لیست ماژول‌های مستقر در زیرپوشه feeds
     local feed_modules="openwrt sourceforge"
