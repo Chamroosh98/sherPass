@@ -17,7 +17,6 @@ change_lan_ip() {
     uci set network.lan.ipaddr="$target_ip"
     uci commit network
     
-    # ریستارت زیرساخت شبکه و وب‌سرور لوچی برای اعمال روی ساب‌نت جدید
     /etc/init.d/network restart >/dev/null 2>&1
     /etc/init.d/uhttpd restart >/dev/null 2>&1
 }
