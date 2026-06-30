@@ -120,9 +120,14 @@ run_factory_reset() {
     fi
 }
 
-# 📱 هاب منوی اصلی
+# 📱 هاب منوی اصلی تعاملی و هوشمند
 while true; do
+    clear
+    
+    generate_custom_banner
+    
     draw_header "$ARCH" "$PKG_MGR"
+    
     echo -e "  ${PURPLE}[1]${NC} Optimized Installation ${GRAY}(Cores + LuCI Selection)${NC}"
     echo -e "  ${PURPLE}[2]${NC} Apply/Update Iran Smart Routing ${GRAY}(DAT files)${NC}"
     echo -e "  ${PURPLE}[3]${NC} Enable Daily Auto-Update ${GRAY}(CronJob)${NC}"
@@ -130,16 +135,39 @@ while true; do
     echo -e "  ${PURPLE}[0]${NC} Exit"
     echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
     printf "  Select an option [0-4]: "
+    
     read -r choice </dev/tty
     [ -z "$choice" ] && continue
+    
     case "$choice" in
-        1) run_optimized_installation ;;
-        2) run_iran_rules_module ;;
-        3) setup_auto_update "$LOG_FILE" ;;
-        4) run_factory_reset ;;
-        0) echo -e "${CYAN}Goodbye!${NC}"; exit 0 ;;
-        *) echo -e "${RED}Invalid Option!${NC}"; sleep 1 ;;
+        1) 
+            clear
+            generate_custom_banner 
+            run_optimized_installation 
+            ;;
+        2) 
+            clear
+            generate_custom_banner
+            run_iran_rules_module 
+            ;;
+        3) 
+            clear
+            generate_custom_banner
+            setup_auto_update "$LOG_FILE" 
+            ;;
+        4) 
+            run_factory_reset 
+            ;;
+        0) 
+            echo -e "${CYAN}Goodbye!${NC}"
+            exit 0 
+            ;;
+        *) 
+            echo -e "${RED}Invalid Option!${NC}"
+            sleep 1 
+            ;;
     esac
+    
     echo -e "\nPress Enter to return to main menu..."
     read -r _unused </dev/tty
 done

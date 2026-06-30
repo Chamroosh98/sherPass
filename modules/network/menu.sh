@@ -5,9 +5,18 @@ show_network_menu() {
     while true; do
         clear
         
-        echo ""
-        echo -e "${CYAN}📡 DayPass ${NC}" "${GRAY}Remembering the IRAN massacre on January 8 and 9, 2026 🕊️ ${NC}"
-        echo -e "${NC}U can use one of these ways for connection:${NC}"
+        echo -e "${CYAN}____        _     ____               "
+        echo -e "|  _ \  __ _ _   _|  _ \  __ _ ___ ___ "
+        echo -e "| | | |/ _\` | | | | |_) / _\` / __/ __|"
+        echo -e "| |_| | (_| | |_| |  __/ (_| \__ \__ \\"
+        echo -e "|____/ \__,_|\__, |_|   \__,_|___/___/"
+        echo -e "             |___/                    ${NC}"
+        echo -e "${GRAY}Remembering the IRAN massacre on January 8 and 9, 2026 🕊️ ${NC}"
+        echo -e "${GRAY}⭐ Deployed by Chamroosh98${NC}"
+        echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
+        
+        echo -e "📡 ${BOLD}DAYPASS NETWORK GATEWAY${NC}"
+        echo -e "${GRAY}Configure deployment routing before core synchronization${NC}"
         echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
         echo -e "  ${PURPLE}[1]${NC} Proxy Tunnel ${GRAY}(SOCKS5 127.0.0.1:8090)${NC}"
         echo -e "  ${PURPLE}[2]${NC} Direct Connection ${GRAY}(No Proxy / Native System)${NC}"
@@ -18,41 +27,28 @@ show_network_menu() {
         printf "  Select network routing [1-3, H for Help, 0 to exit]: "
         
         local net_choice; read -r net_choice </dev/tty
-        
         net_choice=$(echo "$net_choice" | tr -d ' ')
 
         case "$net_choice" in
             1)
-                NET_MODE=2
-                export NET_MODE
+                NET_MODE=2; export NET_MODE
                 echo -e "\n  ${GREEN}✔ Network configuration locked to [Proxy Tunnel]!${NC}"
                 echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
-                echo ""
-                sleep 1
-                break
-                ;;
+                echo ""; sleep 1; break ;;
             2)
-                NET_MODE=1
-                export NET_MODE
+                NET_MODE=1; export NET_MODE
                 echo -e "\n  ${GREEN}✔ Network configuration locked to [Direct Connection]!${NC}"
                 echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
-                echo ""
-                sleep 1
-                break
-                ;;
+                echo ""; sleep 1; break ;;
             3)
-                NET_MODE=3
-                export NET_MODE
+                NET_MODE=3; export NET_MODE
                 echo -e "\n  ${GREEN}✔ Network configuration locked to [Smart Fallback]!${NC}"
                 echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
-                echo ""
-                sleep 1
-                break
-                ;;
+                echo ""; sleep 1; break ;;
             [hH])
                 clear
                 echo ""
-                echo -e "${YELLOW}💡 DayPass PRO-DEVELOPER CONNECTION GUIDE:${NC}"
+                echo -e "${YELLOW}💡 DAYPASS PRO-DEVELOPER CONNECTION GUIDE:${NC}"
                 echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
                 echo -e "  If GitHub/SourceForge is censored or throttled on your infrastructure,"
                 echo -e "  you must route the router traffic through an active workstation proxy."
@@ -70,12 +66,10 @@ show_network_menu() {
                 ;;
             0)
                 echo -e "\n${RED}[-] Deployment terminated by user. Goodbye!${NC}"
-                exit 0
-                ;;
+                exit 0 ;;
             *)
                 echo -e "\n${RED}[!] Critical: Invalid input ('$net_choice'). Please type 1, 2, 3, H or 0!${NC}\n"
-                sleep 1
-                ;;
+                sleep 1 ;;
         esac
     done
 }
