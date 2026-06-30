@@ -6,8 +6,8 @@ show_network_menu() {
         clear
         
         echo ""
-        echo -e "${CYAN}📡 DayPass  ${NC}" "${RED} Remembering the IRAN massacre on January 8 and 9, 2026 🕊️ ${NC}"
-        echo -e "${GRAY}Configure deployment routing before core synchronization${NC}"
+        echo -e "${CYAN}📡 DayPass ${NC}" "${GRAY}Remembering the IRAN massacre on January 8 and 9, 2026 🕊️ ${NC}"
+        echo -e "${NC}U can use one of these ways for connection:${NC}"
         echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
         echo -e "  ${PURPLE}[1]${NC} Proxy Tunnel ${GRAY}(SOCKS5 127.0.0.1:8090)${NC}"
         echo -e "  ${PURPLE}[2]${NC} Direct Connection ${GRAY}(No Proxy / Native System)${NC}"
