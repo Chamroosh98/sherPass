@@ -12,7 +12,7 @@ else
     export CYAN="\033[1;38;5;51m"; export PURPLE="\033[38;5;141m"; export GREEN="\033[32m"; export YELLOW="\033[33m"; export GRAY="\033[90m"; export RED="\033[31m"; export NC="\033[0m"
 fi
 
-# ⚙️ تشخیص پکیج منیجر و معماری روتر
+# ⚙️
 if command -v apk >/dev/null 2>&1; then
     PKG_MGR="apk"; INSTALL_CMD="apk add --allow-untrusted"; REMOVE_CMD="apk del"
     ARCH=$(apk info -o kernel 2>/dev/null | grep -E -o 'arm_.*|mips_.*|x86_64|aarch64' | head -n 1)
@@ -22,13 +22,12 @@ else
 fi
 [ -z "$ARCH" ] && ARCH="arm_cortex-a7_neon-vfpv4"
 
-echo -e "${YELLOW}➔ Bootstrapping DayPass Core Engine ...${NC}"
+echo -e "${YELLOW}➔ Bootstrapping DayPass Core Engine! 🚗 ${NC}"
 mkdir -p "${BASE_MODULES}/feeds"
 mkdir -p "${BASE_MODULES}/network"
 
 INIT_OPTS="-sS -L --insecure --connect-timeout 10"
 
-# دانلود فاز اول: پکیج‌های پایه برای راه‌اندازی (استفاده از شبکه مستقیم روتر)
 if command -v curl >/dev/null 2>&1; then
     curl $INIT_OPTS -o "${BASE_MODULES}/zero_deps.sh" "${GITHUB_RAW_URL}/modules/zero_deps.sh?v=$(date +%s)" 2>/dev/null
     curl $INIT_OPTS -o "${BASE_MODULES}/loader.sh" "${GITHUB_RAW_URL}/modules/loader.sh?v=$(date +%s)" 2>/dev/null
@@ -41,7 +40,7 @@ fi
 
 # ولیدیتور اولیه اسکریپت
 if [ ! -s "${BASE_MODULES}/loader.sh" ] || [ ! -s "${BASE_MODULES}/network/menu.sh" ] || [ ! -s "${BASE_MODULES}/zero_deps.sh" ]; then
-    echo -e "${RED}❌ Critical : Bootloader failed to fetch core structures from GitHub!${NC}"
+    echo -e "${RED}❌ Critical : Bootloader failed to fetch core structures from GitHub! Notify the developer please! 🛎️ ${NC}"
     exit 1
 fi
 
@@ -54,7 +53,7 @@ deploy_system_dependencies "$PKG_MGR" "$INSTALL_CMD" "$LOG_FILE"
 show_network_menu
 
 # 🚀 گام حیاتی ۳: سینک بقیه ماژول‌های هسته بدون تداخل محیطی پروکسی (با منطق ایزوله شده در خود لودر)
-echo -e "${YELLOW}➔ Synchronizing remaining DayPass core modules ...${NC}"
+echo -e "${YELLOW}➔ Synchronizing remaining DayPass core modules! Wait a minute please! ⏰ ${NC}"
 . "${BASE_MODULES}/loader.sh"
 run_online_loader "$GITHUB_RAW_URL" "$@"
 
@@ -62,7 +61,7 @@ run_online_loader "$GITHUB_RAW_URL" "$@"
 if [ -s "${BASE_MODULES}/banner.sh" ]; then
     . "${BASE_MODULES}/banner.sh"
 else
-    echo -e "${RED}❌ Critical: Dynamic banner module is missing inside storage.${NC}"
+    echo -e "${RED}❌ Critical : Dynamic banner module is missing inside storage! Notify the developer please! 🛎️ ${NC}"
     exit 1
 fi
 
@@ -70,26 +69,26 @@ run_optimized_installation() {
     local raw_input="" check_result="" install_singbox="n"
     enforce_root_password
 
-    echo -e "\n${YELLOW}⚡ Optimization Prompt:${NC}"
+    echo -e "\n${YELLOW}⚡ Optimization Prompt :${NC}"
     while true; do
-        printf "Do you want to install ${CYAN}sing-box${NC} core? (Heavy on low-end devices) [y/n]: "
+        printf "Do you want to install ${CYAN}sing-box${NC} core? (Heavy on low-end devices) [y/n] : "
         read -r raw_input </dev/tty
         check_result=$(validate_ascii_input "$raw_input")
         [ "$check_result" = "empty" ] && { install_singbox="n"; break; }
         case "$check_result" in
             [yY]) install_singbox="y"; break ;;
             [nN]) install_singbox="n"; break ;;
-            *) echo -e "${RED}[!] Error : Invalid choice.${NC}\n" ;;
+            *) echo -e "${RED}[!] ❌ Error : Invalid choice! 😒${NC}\n" ;;
         esac
     done
     
     # دپندنس‌ها یک بار همان اول نصب شدند، اما برای اطمینان مجدد چک می‌شوند
     deploy_system_dependencies "$PKG_MGR" "$INSTALL_CMD" "$LOG_FILE"
     
-    echo -e "\n➔ Deep cleaning old/conflicting Passwall components ..."
+    echo -e "\n➔ Deep cleaning old/conflicting Passwall components! 🧼"
     execute_purge_sequence "$PKG_MGR" "$REMOVE_CMD"
     
-    echo -e "\n${CYAN}[Phase 1/2 : Deploying Micro Proxy Cores]${NC}"
+    echo -e "\n${CYAN}[Phase 1/2 : Deploying Micro Proxy Cores] 🌐 ${NC}"
     download_from_openwrt_feed "xray-core" "$INSTALL_CMD" "$LOG_FILE" || \
     download_from_sourceforge_feed "passwall_packages" "xray-plugin" "$INSTALL_CMD" "$LOG_FILE" || return 1
     download_from_openwrt_feed "tcping" "$INSTALL_CMD" "$LOG_FILE" || \
@@ -108,14 +107,14 @@ run_optimized_installation() {
     local install_fa="n" fa_input=""
     echo -e "\n${YELLOW}🌐 Language Pack Selection :${NC}"
     while true; do
-        printf "Do you want to install ${CYAN}Persian (FA)${NC} language pack? [y/n] : "
+        printf "Do you want to install ${CYAN}Persian (FA) 🦁☀️${NC} language pack? [y/n] : "
         read -r fa_input </dev/tty
         check_result=$(validate_ascii_input "$fa_input")
         [ "$check_result" = "empty" ] && { install_fa="n"; break; }
         case "$check_result" in
             [yY]) install_fa="y"; break ;;
             [nN]) install_fa="n"; break ;;
-            *) echo -e "${RED}[!] Error: Invalid choice.${NC}\n" ;;
+            *) echo -e "${RED}[!] ❌ Error: Invalid choice! 😒${NC}\n" ;;
         esac
     done
 
@@ -128,8 +127,8 @@ run_optimized_installation() {
 }
 
 run_factory_reset() {
-    echo -e "${RED}⚠️ WARNING : This will completely wipe the router and reboot!${NC}"
-    printf "Are you absolutely sure? (y/n): "
+    echo -e "${RED}⚠️ WARNING : This will completely wipe the router and reboot! ${NC}"
+    printf "Are you absolutely sure? 😶‍🌫️ (y/n) : "
     read -r confirm </dev/tty
     if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then
         echo -e "${YELLOW}🔄 Initiating firstboot sequence and rebooting ... Goodbye!${NC}"
