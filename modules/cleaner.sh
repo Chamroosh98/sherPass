@@ -1,5 +1,11 @@
 #!/bin/sh
 
+# ==============================================================================
+#  DayPass Framework - Ultimate OpenWrt Deployment Engine
+#  Architect: Chamroosh98
+#  Dedicated to the immortal souls of 18-19 Dey 1404 🕊️
+# ==============================================================================
+
 run_environment_setup() {
     local ins_cmd=$1
     local rem_cmd=$2

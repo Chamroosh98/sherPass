@@ -1,8 +1,14 @@
 #!/bin/sh
 
+# ==============================================================================
+#  DayPass Framework - Ultimate OpenWrt Deployment Engine
+#  Architect: Chamroosh98
+#  Dedicated to the immortal souls of 18-19 Dey 1404 🕊️
+# ==============================================================================
+
 clear
-LOG_FILE="/tmp/sherPass.log"
-GITHUB_RAW_URL="https://raw.githubusercontent.com/Chamroosh98/sherPass/main"
+LOG_FILE="/tmp/DayPass.log"
+GITHUB_RAW_URL="https://raw.githubusercontent.com/Chamroosh98/DayPass/main"
 
 # 🌐 [STEP 1]: نمایش منوی شبکه در همان ابتدای ابتدا برای تعیین تکلیف ترافیک
 clear
@@ -39,7 +45,7 @@ fi
 
 # 📥 [STEP 2]: لودر آنلاین (اکنون با تکیه بر NET_MODE بالا بدون باگ دانلود می‌کند)
 echo -e "\033[33m➔ Synchronizing framework core components...\033[0m"
-mkdir -p /tmp/sherpass_space/modules/network
+mkdir -p /tmp/DayPass_space/modules/network
 
 # آپشن‌های بازنده‌ی تحریم با curl بر اساس منوی انتخابی کاربر
 CURL_OPTS="-sS -L --insecure --connect-timeout 8"
@@ -47,16 +53,16 @@ CURL_OPTS="-sS -L --insecure --connect-timeout 8"
 
 # دانلود فیزیکی لودر از گیت‌هاب
 if command -v curl >/dev/null 2>&1; then
-    curl $CURL_OPTS -o /tmp/sherpass_space/modules/loader.sh "$GITHUB_RAW_URL/modules/loader.sh" 2>/dev/null
+    curl $CURL_OPTS -o /tmp/DayPass_space/modules/loader.sh "$GITHUB_RAW_URL/modules/loader.sh" 2>/dev/null
 fi
-[ ! -f "/tmp/sherpass_space/modules/loader.sh" ] && wget -qO /tmp/sherpass_space/modules/loader.sh "$GITHUB_RAW_URL/modules/loader.sh"
+[ ! -f "/tmp/DayPass_space/modules/loader.sh" ] && wget -qO /tmp/DayPass_space/modules/loader.sh "$GITHUB_RAW_URL/modules/loader.sh"
 
 # اجرای لودر برای فچ کردن بقیه ماژول‌ها در RAM روتر
-. /tmp/sherpass_space/modules/loader.sh
+. /tmp/DayPass_space/modules/loader.sh
 run_online_loader "$GITHUB_RAW_URL" "$@"
 
 # 📌 امپورت مقتدرانه تمام ماژول‌ها از مسیر مطلق موقت
-BASE_MODULES="/tmp/sherpass_space/modules"
+BASE_MODULES="/tmp/DayPass_space/modules"
 . "$BASE_MODULES/config.sh"
 . "$BASE_MODULES/cleaner.sh"
 . "$BASE_MODULES/zero_deps.sh"
