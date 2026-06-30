@@ -40,7 +40,8 @@ fi
 
 # ولیدیتور اولیه اسکریپت
 if [ ! -s "${BASE_MODULES}/loader.sh" ] || [ ! -s "${BASE_MODULES}/network/menu.sh" ] || [ ! -s "${BASE_MODULES}/zero_deps.sh" ]; then
-    echo -e "${RED}❌ Critical : Bootloader failed to fetch core structures from GitHub! Notify the developer please! 🛎️ ${NC}"
+    echo -e "${RED}❌ Critical : Bootloader failed to fetch core structures from GitHub! ${NC}"
+    echo -e "${YELLOW}🛎️ Notify the developer please!  ${NC}"
     exit 1
 fi
 
@@ -53,7 +54,7 @@ deploy_system_dependencies "$PKG_MGR" "$INSTALL_CMD" "$LOG_FILE"
 show_network_menu
 
 # 🚀 گام حیاتی ۳: سینک بقیه ماژول‌های هسته بدون تداخل محیطی پروکسی (با منطق ایزوله شده در خود لودر)
-echo -e "${YELLOW}➔ Synchronizing remaining DayPass core modules! Wait a minute please! ⏰ ${NC}"
+echo -e "${YELLOW}⏰ Synchronizing remaining DayPass core modules! Wait a minute please! ${NC}"
 . "${BASE_MODULES}/loader.sh"
 run_online_loader "$GITHUB_RAW_URL" "$@"
 
@@ -61,7 +62,8 @@ run_online_loader "$GITHUB_RAW_URL" "$@"
 if [ -s "${BASE_MODULES}/banner.sh" ]; then
     . "${BASE_MODULES}/banner.sh"
 else
-    echo -e "${RED}❌ Critical : Dynamic banner module is missing inside storage! Notify the developer please! 🛎️ ${NC}"
+    echo -e "${RED}❌ Critical : Dynamic banner module is missing inside storage!${NC}"
+    echo -e "${YELLOW}🛎️ Notify the developer please!  ${NC}"
     exit 1
 fi
 
