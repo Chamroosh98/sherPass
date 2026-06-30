@@ -1,41 +1,42 @@
 #!/bin/sh
-
 # shellcheck shell=ash
-# DayPass Dynamic Component Loader with Sub-Directory Support
 
 run_online_loader() {
-    local base_url=$1
-    local remote_space="/tmp/DayPass_space/modules"
+    local github_url=$1
+    local target_base="/tmp/daypass_space/modules"
+    local log_file="/tmp/DayPass.log"
+
+    # لیست تمام ماژول‌های اصلی مستقر در پوشه modules
+    local core_modules="config cleaner packages iran_rules cronjob validator banner network passwd"
     
-    # تعریف لیست تمام ماژول‌های استاندارد در روتِ modules
-    local core_modules="config cleaner iran_rules zero_deps cronjob validator banner network passwd"
-    
-    # تعریف لیست ماژول‌های جدید دایرکتوری network
-    local network_modules="menu direct proxy orchestrator"
+    # لیست ماژول‌های مستقر در زیرپوشه feeds
+    local feed_modules="openwrt sourceforge"
 
-    # ساخت دایرکتوری‌های لازم در رم روتر
-    mkdir -p "$remote_space/network"
-    cd "$remote_space" || return 1
+    # تنظیمات آپشن‌های کِرل بر اساس وضعیت شبکه انتخابی کاربر
+    local c_opts="-sS -L --insecure --connect-timeout 8"
+    [ "$NET_MODE" -ne 1 ] && c_opts="$c_opts --socks5-hostname 127.0.0.1:8090"
 
-    # فلگ‌های برنده‌ی curl شما برای عبور از فیلترینگ گیت‌هاب حین دانلود ماژول‌ها
-    local curl_opts="-sS -L --insecure --connect-timeout 6 --socks5-hostname 127.0.0.1:8090"
-
-    # ۱. دانلود ماژول‌های اصلی روت
+    # ۱. دانلود ماژول‌های روتِ اصلی
     for mod in $core_modules; do
-        if [ ! -f "./${mod}.sh" ]; then
-            curl $curl_opts -o "./${mod}.sh" "$base_url/modules/${mod}.sh" 2>/dev/null
-            [ ! -f "./${mod}.sh" ] && wget -qO "./${mod}.sh" "$base_url/modules/${mod}.sh"
+        local mod_url="${github_url}/modules/${mod}.sh?v=$(date +%s)"
+        local dest_file="${target_base}/${mod}.sh"
+
+        if command -v curl >/dev/null 2>&1; then
+            curl $c_opts -o "$dest_file" "$mod_url" >> "$log_file" 2>&1
+        else
+            wget -qO "$dest_file" "$mod_url" >> "$log_file" 2>&1
         fi
     done
 
-    # ۲. دانلود ماژول‌های زیرمجموعه پوشه network (حل مشکل ارور خط ۵۴)
-    for net_mod in $network_modules; do
-        if [ ! -f "./network/${net_mod}.sh" ]; then
-            curl $curl_opts -o "./network/${net_mod}.sh" "$base_url/modules/network/${net_mod}.sh" 2>/dev/null
-            [ ! -f "./network/${net_mod}.sh" ] && wget -qO "./network/${net_mod}.sh" "$base_url/modules/network/${net_mod}.sh"
+    # ۲. دانلود ماژول‌های داخل پوشه feeds
+    for feed in $feed_modules; do
+        local feed_url="${github_url}/modules/feeds/${feed}.sh?v=$(date +%s)"
+        local dest_feed_file="${target_base}/feeds/${feed}.sh"
+
+        if command -v curl >/dev/null 2>&1; then
+            curl $c_opts -o "$dest_feed_file" "$feed_url" >> "$log_file" 2>&1
+        else
+            wget -qO "$dest_feed_file" "$feed_url" >> "$log_file" 2>&1
         fi
     done
-    
-    # بازگشت به مسیر پیش‌فرض حافظه موقت جهت امپورت بی‌دردسر
-    cd /tmp/DayPass_space || return 1
 }
