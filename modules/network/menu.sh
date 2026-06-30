@@ -56,7 +56,7 @@ show_network_menu() {
                 echo ""
                 echo -e "  ${CYAN}• 🐧 Linux Users (Via Hiddify | V2rayN | Throne | ...):${NC}"
                 echo -e "    Run this command from your local terminal [Konsole] BEFORE starting script for use of Remote Port Forwarding :"
-                echo -e "    ${GRAY}ssh -R 8090:localhost:10808 root@[router's ip, for example: 192.168.1.1]${NC}"
+                echo -e "    ssh -R 8090:localhost:10808 root@[router's ip ${GRAY} for example: 192.168.1.1]${NC}"
                 echo ""
                 echo -e "  ${CYAN}• 🪟 Windows Users (Via Hiddify | V2rayN | Throne | Nekoray | ...):${NC}"
                 echo -e "    1. Enable 'Allow LAN' inside v2rayN settings"
