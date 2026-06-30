@@ -1,11 +1,5 @@
 #!/bin/sh
 
-# ==============================================================================
-#  DayPass Framework - Ultimate OpenWrt Deployment Engine
-#  Architect: Chamroosh98
-#  Dedicated to the immortal souls of 18-19 Dey 1404 🕊️
-# ==============================================================================
-
 CYAN='\033[38;5;51m'
 PURPLE='\033[38;5;141m'
 GREEN='\033[38;5;84m'

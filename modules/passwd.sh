@@ -1,11 +1,5 @@
 #!/bin/sh
 
-# ==============================================================================
-#  DayPass Framework - Ultimate OpenWrt Deployment Engine
-#  Architect: Chamroosh98
-#  Dedicated to the immortal souls of 18-19 Dey 1404 🕊️
-# ==============================================================================
-
 # shellcheck shell=ash
 # Root Password Enforcement Module (BusyBox Compliant)
 
@@ -13,7 +7,6 @@ enforce_root_password() {
     local root_pass_status
     root_pass_status=$(grep '^root:' /etc/shadow | cut -d: -f2)
 
-    # اگر پسورد از قبل ست شده باشد و علامت ! یا * یا خالی نباشد، رد شو
     if [ "$root_pass_status" != "!" ] && [ -n "$root_pass_status" ] && [ "$root_pass_status" != "*" ]; then
         return 0
     fi

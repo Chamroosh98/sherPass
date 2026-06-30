@@ -1,58 +1,52 @@
 #!/bin/sh
-
-# ==============================================================================
-#  DayPass Framework - Ultimate OpenWrt Deployment Engine
-#  Architect: Chamroosh98
-#  Dedicated to the immortal souls of 18-19 Dey 1404 🕊️
-# ==============================================================================
-
 # shellcheck shell=ash
-# Advanced Post-Install SSH Banner Customizer Module
 
 generate_custom_banner() {
-    local banner_file="/etc/banner"
+    local PURPLE="\033[38;5;141m"
+    local CYAN="\033[1;38;5;51m"
+    local GRAY="\033[90m"
+    local GREEN="\033[32m"
+    local NC="\033[0m"
+
+    clear
+    echo -e "${PURPLE}  ____              ____               ${NC}"
+    echo -e "${PURPLE} |  _ \\  __ _ _   _|  _ \\ __ _ ___ ___ ${NC}"
+    echo -e "${PURPLE} | | | |/ _\` | | | | |_) / _\` / __/ __|${NC}"
+    echo -e "${PURPLE} | |_| | (_| | |_| |  __/ (_| \\__ \\__ \\${NC}"
+    echo -e "${PURPLE} |____/ \\__,_|\\__, |_|   \\__,_|___/___/${NC}"
+    echo -e "${PURPLE}              |___/                    ${NC}"
+    echo -e "  ${CYAN}☀️ DayPass Framework Engine Active${NC}"
+    echo -e "  ${GRAY}⭐ Deployed by Chamroosh98 ${NC}"
+    echo -e "${PURPLE}---------------------------------------------------------${NC}"
     
-    local ram_total=$(free -m | awk '/Mem:/ {print $2}')
-    local ram_used=$(free -m | awk '/Mem:/ {print $3}')
-    local ram_free=$(free -m | awk '/Mem:/ {print $4}')
+    local ram_total ram_free ram_used
+    ram_total=$(free -m | grep Mem | awk '{print $2}')
+    ram_free=$(free -m | grep Mem | awk '{print $4}')
+    ram_used=$((ram_total - ram_free))
+
+    echo -e "  ${CYAN}SYSTEM TELEMETRY & RESOURCES:${NC}"
+    echo -e "${PURPLE}---------------------------------------------------------${NC}"
+    echo -e "  • Memory (RAM)  : ${ram_used}MB Used / ${ram_free}MB Free (${ram_total}MB Total)"
     
-    local disk_total=$(df -h / | awk 'NR==2 {print $2}')
-    local disk_used=$(df -h / | awk 'NR==2 {print $3}')
-    local disk_avail=$(df -h / | awk 'NR==2 {print $4}')
-    local disk_percent=$(df -h / | awk 'NR==2 {print $5}')
+    if command -v df >/dev/null 2>&1; then
+        local rom_info
+        rom_info=$(df -h / | tail -n 1)
+        local rom_used=$(echo "$rom_info" | awk '{print $3}')
+        local rom_avail=$(echo "$rom_info" | awk '{print $4}')
+        local rom_pct=$(echo "$rom_info" | awk '{print $5}')
+        echo -e "  • Storage (ROM) : ${rom_used} Used / ${rom_avail} Available (${rom_pct})"
+    fi
+    echo -e "${PURPLE}---------------------------------------------------------${NC}"
+}
 
-    print_status "work" "Checking router's WAN public network identity"
-    local public_ip=$(curl -s --connect-timeout 4 https://api.ipify.org 2>/dev/null)
-    [ -z "$public_ip" ] && public_ip="No Internet / Blocked"
-
-    print_status "work" "Injecting brand-new DayPass telemetry banner into /etc/banner"
-
-    cat << EOF > "$banner_file"
-       __                      ____                 
-  ____/ /_  ___  _________ ___/ / /_  ____ ______ ___
- / ___/ __ \/ _ \/ ___/ __ \__  / __ \/ __ \/ ___// __ \\
-(__  ) / / /  __/ /  / /_/ / / / /_/ / /_/ (__  )/ /_/ /
-/____/_/ /_/\___/_/   \__,_/ /_/_.___/\__,_/____/ .___/ 
-      ⭐ Deployed by Chamroosh                    /_/    
----------------------------------------------------------
-  SYSTEM TELEMETRY & RESOURCES:
----------------------------------------------------------
-  • Public WAN IP : $public_ip
-  • Memory (RAM)  : ${ram_used}MB Used / ${ram_free}MB Free (${ram_total}MB Total)
-  • Storage (ROM) : $disk_used Used / $disk_avail Available ($disk_percent)
----------------------------------------------------------
-  ⚠️ SOURCEFORGE & BYPASS SANCTIONS NOTICE (IRAN):
----------------------------------------------------------
-  If SourceForge downloads or updates hang/fail on your IP,
-  it means your connection is throttled or sanctioned.
-  
-  👉 Linux Users / Pro Developers can bypass this via SSH 
-     Remote Port Forwarding (SOCKS5 Proxy Tunneling):
-     
-     ssh -R 8090:localhost:10808 root@\$(uci get network.lan.ipaddr 2>/dev/null || echo "192.168.1.1")
-     
----------------------------------------------------------
-EOF
-
-    print_status "success" "Custom SSH system banner deployed flawlessly!"
+draw_header() {
+    local arch=$1
+    local pkg_mgr=$2
+    
+    echo -e "\n${PURPLE}┌───────────────────────────────────────────────┐${NC}"
+    echo -e "${PURPLE}│${NC}    ${CYAN}DayPass Pro Auto-Installer Component${NC}       ${PURPLE}│${NC}"
+    echo -e "${PURPLE}├───────────────────────────────────────────────┤${NC}"
+    echo -e "${PURPLE}│${NC}  Arch: ${arch}    ${PURPLE}│${NC}"
+    echo -e "${PURPLE}│${NC}  Manager: ${pkg_mgr}                                 ${PURPLE}│${NC}"
+    echo -e "${PURPLE}└───────────────────────────────────────────────┘${NC}"
 }

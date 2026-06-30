@@ -1,11 +1,5 @@
 #!/bin/sh
 
-# ==============================================================================
-#  DayPass Framework - Ultimate OpenWrt Deployment Engine
-#  Architect: Chamroosh98
-#  Dedicated to the immortal souls of 18-19 Dey 1404 🕊️
-# ==============================================================================
-
 run_environment_setup() {
     local ins_cmd=$1
     local rem_cmd=$2
@@ -17,7 +11,6 @@ run_environment_setup() {
     
     local installed_list=""
     for pkg in $targets; do
-        # فلگ -e در apk فقط پکیج‌هایی که واقعاً روی سیستم نصب هستند را تایید میکند
         if apk info -e "$pkg" >/dev/null 2>&1; then
             installed_list="$installed_list $pkg"
         fi

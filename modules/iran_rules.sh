@@ -1,11 +1,5 @@
 #!/bin/sh
 
-# ==============================================================================
-#  DayPass Framework - Ultimate OpenWrt Deployment Engine
-#  Architect: Chamroosh98
-#  Dedicated to the immortal souls of 18-19 Dey 1404 🕊️
-# ==============================================================================
-
 # Smart routing rules module for Iran (DAT files)
 
 URL_GEOSITE_IRAN="https://github.com/chocolate4u/Iran-v2ray-rules/releases/latest/download/geosite.dat"
