@@ -38,7 +38,7 @@ show_network_menu() {
                 export HTTP_PROXY="socks5h://127.0.0.1:8090"
                 export HTTPS_PROXY="socks5h://127.0.0.1:8090"
                 echo -e "\n  ${GREEN}✔ Network configuration locked to [Proxy Tunnel]!${NC}"
-                echo -e "     ${GRAY}System proxies mapped to socks5h://127.0.0.1:8090${NC}"
+                echo -e "     ${GRAY}🌐 System proxies mapped to socks5h://127.0.0.1:8090${NC}"
                 echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
                 echo ""; sleep 1; break ;;
             2)
@@ -54,13 +54,13 @@ show_network_menu() {
                 export HTTP_PROXY="socks5h://127.0.0.1:8090"
                 export HTTPS_PROXY="socks5h://127.0.0.1:8090"
                 echo -e "\n  ${GREEN}✔ Network configuration locked to [Smart Fallback]!${NC}"
-                echo -e "     ${GRAY}Initial proxy handshake routed through SOCKS5 tunnel${NC}"
+                echo -e "     ${GRAY}🌐 Initial proxy handshake routed through SOCKS5 tunnel${NC}"
                 echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
                 echo ""; sleep 1; break ;;
             [hH])
                 clear
                 echo ""
-                echo -e "${YELLOW}💡 DAYPASS CONNECTION GUIDE:${NC}"
+                echo -e "${YELLOW}💡 DAYPASS CONNECTION GUIDE :${NC}"
                 echo -e "${PURPLE}-------------------------------------------------${NC}"
                 echo -e "  If GitHub/SourceForge is censored or throttled on your infrastructure,"
                 echo -e "  you must route the router traffic through an active workstation proxy ;D"

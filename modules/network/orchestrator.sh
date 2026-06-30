@@ -6,7 +6,7 @@ download_package_smart() {
     local space_path="/tmp/DayPass_space/modules/network"
 
     if apk info -e "$keyword" >/dev/null 2>&1 || [ "$keyword" = "xray-core" ] && apk info -e "xray-plugin" >/dev/null 2>&1; then
-        echo -e "   ${GREEN}✔ [Skipped] $keyword is already deployed flawlessly. No re-download needed! ✨${NC}"
+        echo -e "   ${GREEN}✔ [Skipped] $keyword is already deployed flawlessly!🦧 No re-download needed! ✨${NC}"
         return 0
     fi
 
@@ -67,7 +67,7 @@ download_package_smart() {
     else
         fetch_proxy "" "$full_download_url" "$tmp_target" "$log_file"; dl_status=$?
         if [ $dl_status -ne 0 ] && [ "$engine_mode" = "smart-proxy" ]; then
-            echo -e "   ${YELLOW}⚠️ Proxy dropped connection. Retrying via Direct Connection...${NC}"
+            echo -e "   ${YELLOW}⚠️ Proxy dropped connection. Retrying via Direct Connection! ${NC}"
             . "$space_path/direct.sh"
             fetch_direct "" "$full_download_url" "$tmp_target" "$log_file"; dl_status=$?
         fi
@@ -81,5 +81,5 @@ download_package_smart() {
             rm -f "$tmp_target" && return 0
         fi
     fi
-    print_status "failed" "Critical! Network execution failed for $keyword" && rm -f "$tmp_target" && return 1
+    print_status "failed" "❌ Critical : Network execution failed for $keyword" && rm -f "$tmp_target" && return 1
 }

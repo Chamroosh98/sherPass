@@ -7,16 +7,16 @@ URL_GEOIP_IRAN="https://github.com/chocolate4u/Iran-v2ray-rules/releases/latest/
 XRAY_ASSET_DIR="/usr/share/xray"
 
 update_dat_files() {
-    print_status "work" "Fetching latest Iran routing databases (DAT)"
+    print_status "work" "Fetching latest Iran routing databases (DAT) 🦁☀️"
     mkdir -p "$XRAY_ASSET_DIR"
     wget -qO /tmp/geosite.dat "$URL_GEOSITE_IRAN"
     wget -qO /tmp/geoip.dat "$URL_GEOIP_IRAN"
 
     if [ ! -s /tmp/geosite.dat ] || [ ! -s /tmp/geoip.dat ]; then
-        print_status "failed" "Database download failed!"
+        print_status "failed" "❌ Database download failed!"
         return 1
     fi
-    print_status "done" "Databases Fetched"
+    print_status "done" "✅ Databases Fetched :D"
 
     cp /tmp/geosite.dat "$XRAY_ASSET_DIR/geosite.dat"
     cp /tmp/geoip.dat "$XRAY_ASSET_DIR/geoip.dat"

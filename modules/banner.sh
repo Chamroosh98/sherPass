@@ -55,8 +55,8 @@ draw_header() {
     echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
     
     if [ -z "$(curl -s --connect-timeout 2 sourceforge.net 2>/dev/null)" ]; then
-        echo -e "${YELLOW}⚠️ SANCTION NOTICE:${NC} SourceForge connection throttled on this IP."
-        echo -e "  ${GRAY}Bypass via Terminal:${NC} ssh -R 8090:localhost:10808 root@$(uci get network.lan.ipaddr 2>/dev/null || echo "192.168.1.1")"
+        echo -e "${YELLOW}⚠️ SANCTION NOTICE :${NC} SourceForge connection throttled on this IP! 🫩 "
+        echo -e "  ${GRAY}🙂‍↔️ Bypass via Terminal :${NC} ssh -R 8090:localhost:10808 root@$(uci get network.lan.ipaddr 2>/dev/null || echo "192.168.1.1")"
         echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
     fi
 }

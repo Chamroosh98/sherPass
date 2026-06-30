@@ -6,7 +6,7 @@ deploy_system_dependencies() {
     local ins_cmd=$2
     local log_file=$3
 
-    echo -e "${YELLOW}➔ Updating system package repositories (${pkg_mgr}) ♻️ ... ${NC}"
+    echo -e "${YELLOW}♻️ Updating system package repositories (${pkg_mgr}) ... ${NC}"
     if [ "$pkg_mgr" = "apk" ]; then
         apk update >> "$log_file" 2>&1
     else
@@ -16,7 +16,7 @@ deploy_system_dependencies() {
     local core_deps="curl"
     local user_tools="openssh-sftp-server dnsmasq-full kmod-nf-conntrack-netlink libatomic1"
 
-    echo -e "${YELLOW}➔ Injecting core dependencies & manual utility tools! 💉 ${NC}"
+    echo -e "${YELLOW}💉 Injecting core dependencies & manual utility tools!  ${NC}"
     
     for pkg in $core_deps $user_tools; do
         local is_installed=1
@@ -31,12 +31,12 @@ deploy_system_dependencies() {
             $ins_cmd "$pkg" >> "$log_file" 2>&1
             
             if [ $? -eq 0 ]; then
-                echo -e "   ${GREEN}✔ $pkg is now fully active!${NC}"
+                echo -e "   ${GREEN}✅ $pkg is now fully active! ${NC}"
             else
                 echo -e "   ${YELLOW}⚠️ Failed to inject $pkg. Check logs for details! 🥱 ${NC}"
             fi
         else
-            echo -e "   ${GREEN}✔ [Skipped] $pkg is already present in system storage! ${NC}"
+            echo -e "   ${GREEN}✅ [Skipped] $pkg is already present in system storage! ${NC}"
         fi
     done
 }

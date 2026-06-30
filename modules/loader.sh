@@ -1,9 +1,5 @@
 #!/bin/sh
 # shellcheck shell=ash
-# ==============================================================================
-#  DayPass Framework - Automated Online Module Synchronizer (Failsafe Sync)
-#  Architect: Chamroosh (ch4mr0sh)
-# ==============================================================================
 
 run_online_loader() {
     local github_url=$1

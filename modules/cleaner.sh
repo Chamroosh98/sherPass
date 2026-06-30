@@ -7,7 +7,7 @@ run_environment_setup() {
 
     local targets="luci-app-passwall luci-app-passwall2 luci-i18n-passwall-fa luci-i18n-passwall2-fa xray-core sing-box tcping geoview v2ray-geosite-ir v2ray-geoip"
     
-    echo -e "\n${PURPLE}➔ Deep cleaning old/conflicting Passwall components...${NC}"
+    echo -e "\n${PURPLE}➔ Deep cleaning old/conflicting Passwall components! 🧼 ${NC}"
     
     local installed_list=""
     for pkg in $targets; do
@@ -21,7 +21,7 @@ run_environment_setup() {
         return 0
     fi
 
-    echo -e "\n${YELLOW}   ⚡ Executing Purge Sequence:${NC}"
+    echo -e "\n${YELLOW}   ⚡ Executing Purge Sequence : ${NC}"
     for pkg in $installed_list; do
         printf "   ${YELLOW}🔄 Removing $pkg ...${RC}"
         if $rem_cmd "$pkg" >> "$log_file" 2>&1; then
