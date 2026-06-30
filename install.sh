@@ -1,14 +1,8 @@
 #!/bin/sh
 # shellcheck shell=ash
-# ==============================================================================
-#  DayPass Framework - Ultimate OpenWrt Deployment Engine (FailSafe Boot)
-#  Architect: Chamroosh (ch4mr0sh)
-#  Dedicated to the immortal souls of 18-19 Dey 1404 🕊️
-# ==============================================================================
 
 clear
 
-# 📥 ۱. لود فوری ثوابت پروژه و مسیرها
 if [ -f "./consts.sh" ]; then
     . ./consts.sh
 else
@@ -18,7 +12,6 @@ else
     export CYAN="\033[1;38;5;51m"; export PURPLE="\033[38;5;141m"; export GREEN="\033[32m"; export YELLOW="\033[33m"; export GRAY="\033[90m"; export RED="\033[31m"; export NC="\033[0m"
 fi
 
-# ⚙️ ۲. تشخیص مدیریت پکیج و معماری روتر
 if command -v apk >/dev/null 2>&1; then
     PKG_MGR="apk"; INSTALL_CMD="apk add --allow-untrusted"; REMOVE_CMD="apk del"
     ARCH=$(apk info -o kernel 2>/dev/null | grep -E -o 'arm_.*|mips_.*|x86_64|aarch64' | head -n 1)
@@ -32,7 +25,6 @@ echo -e "${YELLOW}➔ Initializing DayPass Bootloader...${NC}"
 mkdir -p "${BASE_MODULES}/feeds"
 mkdir -p "${BASE_MODULES}/network"
 
-# 🔒 دانلود لودر اولیه به صورت کاملاً Direct (بدون پروکسی) برای جلوگیری از خطای کانتکست
 INIT_OPTS="-sS -L --insecure --connect-timeout 10"
 
 if command -v curl >/dev/null 2>&1; then
@@ -43,22 +35,18 @@ else
     wget -qO "${BASE_MODULES}/network/menu.sh" "${GITHUB_RAW_URL}/modules/network/menu.sh?v=$(date +%s)" 2>/dev/null
 fi
 
-# بررسی وجود کامپوننت‌های پایه قبل از اجرا
 if [ ! -s "${BASE_MODULES}/loader.sh" ] || [ ! -s "${BASE_MODULES}/network/menu.sh" ]; then
     echo -e "${RED}❌ Critical: Bootloader failed to fetch core structures from GitHub.${NC}"
     exit 1
 fi
 
-# لود کردن منوی شبکه و اجرای آن برای تعیین مسیر اصلی توسط کاربر
 . "${BASE_MODULES}/network/menu.sh"
 show_network_menu
 
-# حالا که کاربر شبکه را انتخاب کرد، لودر اصلی را با کانفیگ انتخابی ران می‌کنیم
 echo -e "${YELLOW}➔ Synchronizing remaining DayPass core modules...${NC}"
 . "${BASE_MODULES}/loader.sh"
 run_online_loader "$GITHUB_RAW_URL" "$@"
 
-# 👑 ۳. رندر بنر گرافیکی اصلی
 generate_custom_banner
 
 run_optimized_installation() {
