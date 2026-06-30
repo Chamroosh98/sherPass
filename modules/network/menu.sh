@@ -49,20 +49,23 @@ show_network_menu() {
             [hH])
                 clear
                 echo ""
-                echo -e "${YELLOW}💡 DAYPASS PRO-DEVELOPER CONNECTION GUIDE:${NC}"
-                echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
+                echo -e "${YELLOW}💡 DAYPASS CONNECTION GUIDE:${NC}"
+                echo -e "${PURPLE}-------------------------------------------------${NC}"
                 echo -e "  If GitHub/SourceForge is censored or throttled on your infrastructure,"
-                echo -e "  you must route the router traffic through an active workstation proxy."
+                echo -e "  you must route the router traffic through an active workstation proxy ;D"
                 echo ""
-                echo -e "  ${CYAN}• Linux / macOS (Via Remote Port Forwarding):${NC}"
-                echo -e "    Run this command from your local terminal BEFORE starting script:"
-                echo -e "    ${GRAY}ssh -R 8090:localhost:10808 root@[router's ip for example 192.168.1.1]${NC}"
+                echo -e "  ${CYAN}• 🐧 Linux Users (Via Hiddify | V2rayN | Throne | ...):${NC}"
+                echo -e "    Run this command from your local terminal [Konsole] BEFORE starting script for use of Remote Port Forwarding :"
+                echo -e "    ${GRAY}ssh -R 8090:localhost:10808 root@[router's ip, for example: 192.168.1.1]${NC}"
                 echo ""
-                echo -e "  ${CYAN}• Windows Users (Via v2rayN / netsh / Nekoray):${NC}"
-                echo -e "    Enable 'Allow LAN' inside v2rayN settings, or map port 8090"
-                echo -e "    directly to your Windows proxy server listener (default 10808)."
+                echo -e "  ${CYAN}• 🪟 Windows Users (Via Hiddify | V2rayN | Throne | Nekoray | ...):${NC}"
+                echo -e "    1. Enable 'Allow LAN' inside v2rayN settings"
+                echo -e "    2. Select any ssh application (like Putty, Bitvise, or ..)"
+                echo -e "    3. Set 127.0.0.1:10808 for SOCKS/HTTP Proxy Forwarding in Network section!"
+                echo -e "    4. Finally! Create a ssh session that use of this proxy!"
+                echo -e "    "
                 echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
-                printf "  Press Enter to return to the network selection menu..."
+                printf "  Press Enter to return to the network selection menu ..."
                 read -r _unused </dev/tty
                 ;;
             0)
