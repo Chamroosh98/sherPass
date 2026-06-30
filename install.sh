@@ -1,9 +1,5 @@
 #!/bin/sh
 # shellcheck shell=ash
-# ==============================================================================
-#  DayPass Framework - Ultimate OpenWrt Deployment Engine (Lifecycle Fixed)
-#  Architect: Chamroosh (ch4mr0sh)
-# ==============================================================================
 
 clear
 
@@ -45,7 +41,7 @@ fi
 
 # ولیدیتور اولیه اسکریپت
 if [ ! -s "${BASE_MODULES}/loader.sh" ] || [ ! -s "${BASE_MODULES}/network/menu.sh" ] || [ ! -s "${BASE_MODULES}/zero_deps.sh" ]; then
-    echo -e "${RED}❌ Critical: Bootloader failed to fetch core structures from GitHub.${NC}"
+    echo -e "${RED}❌ Critical : Bootloader failed to fetch core structures from GitHub!${NC}"
     exit 1
 fi
 
@@ -58,7 +54,7 @@ deploy_system_dependencies "$PKG_MGR" "$INSTALL_CMD" "$LOG_FILE"
 show_network_menu
 
 # 🚀 گام حیاتی ۳: سینک بقیه ماژول‌های هسته بدون تداخل محیطی پروکسی (با منطق ایزوله شده در خود لودر)
-echo -e "${YELLOW}➔ Synchronizing remaining DayPass core modules...${NC}"
+echo -e "${YELLOW}➔ Synchronizing remaining DayPass core modules ...${NC}"
 . "${BASE_MODULES}/loader.sh"
 run_online_loader "$GITHUB_RAW_URL" "$@"
 
@@ -83,17 +79,17 @@ run_optimized_installation() {
         case "$check_result" in
             [yY]) install_singbox="y"; break ;;
             [nN]) install_singbox="n"; break ;;
-            *) echo -e "${RED}[!] Error: Invalid choice.${NC}\n" ;;
+            *) echo -e "${RED}[!] Error : Invalid choice.${NC}\n" ;;
         esac
     done
     
     # دپندنس‌ها یک بار همان اول نصب شدند، اما برای اطمینان مجدد چک می‌شوند
     deploy_system_dependencies "$PKG_MGR" "$INSTALL_CMD" "$LOG_FILE"
     
-    echo -e "\n➔ Deep cleaning old/conflicting Passwall components..."
+    echo -e "\n➔ Deep cleaning old/conflicting Passwall components ..."
     execute_purge_sequence "$PKG_MGR" "$REMOVE_CMD"
     
-    echo -e "\n${CYAN}[Phase 1/2: Deploying Micro Proxy Cores]${NC}"
+    echo -e "\n${CYAN}[Phase 1/2 : Deploying Micro Proxy Cores]${NC}"
     download_from_openwrt_feed "xray-core" "$INSTALL_CMD" "$LOG_FILE" || \
     download_from_sourceforge_feed "passwall_packages" "xray-plugin" "$INSTALL_CMD" "$LOG_FILE" || return 1
     download_from_openwrt_feed "tcping" "$INSTALL_CMD" "$LOG_FILE" || \
@@ -110,9 +106,9 @@ run_optimized_installation() {
     download_from_sourceforge_feed "passwall2" "luci-app-passwall2" "$INSTALL_CMD" "$LOG_FILE" || return 1
     
     local install_fa="n" fa_input=""
-    echo -e "\n${YELLOW}🌐 Language Pack Prompt:${NC}"
+    echo -e "\n${YELLOW}🌐 Language Pack Selection :${NC}"
     while true; do
-        printf "Do you want to install ${CYAN}Persian (FA)${NC} language pack? [y/n]: "
+        printf "Do you want to install ${CYAN}Persian (FA)${NC} language pack? [y/n] : "
         read -r fa_input </dev/tty
         check_result=$(validate_ascii_input "$fa_input")
         [ "$check_result" = "empty" ] && { install_fa="n"; break; }
@@ -132,11 +128,11 @@ run_optimized_installation() {
 }
 
 run_factory_reset() {
-    echo -e "${RED}⚠️ WARNING: This will completely wipe the router and reboot!${NC}"
+    echo -e "${RED}⚠️ WARNING : This will completely wipe the router and reboot!${NC}"
     printf "Are you absolutely sure? (y/n): "
     read -r confirm </dev/tty
     if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then
-        echo -e "${YELLOW}🔄 Initiating firstboot sequence and rebooting... Goodbye!${NC}"
+        echo -e "${YELLOW}🔄 Initiating firstboot sequence and rebooting ... Goodbye!${NC}"
         sleep 1
         firstboot -y && reboot
     fi
