@@ -12,6 +12,9 @@ run_online_loader() {
     # لیست ماژول‌های مستقر در زیرپوشه feeds
     local feed_modules="openwrt sourceforge"
 
+    # مطمئن شدن از وجود دایرکتوری‌ها به صورت فیزیکی در رم روتر
+    mkdir -p "${target_base}/feeds"
+
     # تنظیمات آپشن‌های کِرل بر اساس وضعیت شبکه انتخابی کاربر
     local c_opts="-sS -L --insecure --connect-timeout 8"
     [ "$NET_MODE" -ne 1 ] && c_opts="$c_opts --socks5-hostname 127.0.0.1:8090"
@@ -26,6 +29,11 @@ run_online_loader() {
         else
             wget -qO "$dest_file" "$mod_url" >> "$log_file" 2>&1
         fi
+
+        # بررسی سلامت دانلود فایل
+        if [ ! -s "$dest_file" ]; then
+            echo -e "   \033[31m❌ Critical Error: Failed to synchronize core module [${mod}.sh]\033[0m"
+        fi
     done
 
     # ۲. دانلود ماژول‌های داخل پوشه feeds
@@ -37,6 +45,11 @@ run_online_loader() {
             curl $c_opts -o "$dest_feed_file" "$feed_url" >> "$log_file" 2>&1
         else
             wget -qO "$dest_feed_file" "$feed_url" >> "$log_file" 2>&1
+        fi
+
+        # بررسی سلامت دانلود فیدها
+        if [ ! -s "$dest_feed_file" ]; then
+            echo -e "   \033[31m❌ Critical Error: Failed to synchronize feed module [${feed}.sh]\033[0m"
         fi
     done
 }
