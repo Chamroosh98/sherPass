@@ -1,26 +1,23 @@
 #!/bin/sh
 # shellcheck shell=ash
-# Network UI Menu Module
 
 show_network_menu() {
     clear
-    echo -e "${PURPLE}┌───────────────────────────────────────────────┐${NC}"
-    echo -e "${PURPLE}│${NC}       ${BOLD}🌐 SELECT NETWORK DEPLOYMENT MODE${NC}      ${PURPLE}│${NC}"
-    echo -e "${PURPLE}├───────────────────────────────────────────────┤${NC}"
-    echo -e "${PURPLE}│${NC}  ${CYAN}[1] Proxy Tunnel (SOCKS5 127.0.0.1:8090)${NC}    ${PURPLE}│${NC}"
-    echo -e "${PURPLE}│      ${GRAY}↳ Best if GitHub/SourceForge is blocked.${NC} ${PURPLE}│${NC}"
-    echo -e "${PURPLE}│${NC}  ${CYAN}[2] Direct Connection (No Proxy)${NC}            ${PURPLE}│${NC}"
-    echo -e "${PURPLE}│      ${GRAY}↳ Native router network bypass.${NC}          ${PURPLE}│${NC}"
-    echo -e "${PURPLE}│${NC}  ${CYAN}[3] Smart Resilient Fallback (Recommended)${NC}   ${PURPLE}│${NC}"
-    echo -e "${PURPLE}│      ${GRAY}↳ Tries Proxy first, drops to Direct on loss.${NC}${PURPLE}│${NC}"
-    echo -e "${PURPLE}└───────────────────────────────────────────────┘${NC}"
+    echo -e "${CYAN}🌐 SELECT NETWORK DEPLOYMENT MODE${NC}"
+    echo -e "  ${PURPLE}[1]${NC} Proxy Tunnel ${GRAY}(SOCKS5 127.0.0.1:8090)${NC}"
+    echo -e "      ↳ Best if GitHub/SourceForge is blocked."
+    echo -e "  ${PURPLE}[2]${NC} Direct Connection ${GRAY}(No Proxy)${NC}"
+    echo -e "      ↳ Native router network bypass."
+    echo -e "  ${PURPLE}[3]${NC} Smart Resilient Fallback ${GRAY}(Recommended)${NC}"
+    echo -e "      ↳ Tries Proxy first, drops to Direct on loss."
+    echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
     printf "  Select network routing [1-3] (Default 3): "
     
     local net_choice; read -r net_choice </dev/tty
     case "$net_choice" in
-        1) NET_MODE=2 ;; # پروکسی خالص
-        2) NET_MODE=1 ;; # دایرکت خالص
-        *) NET_MODE=3 ;; # هوشمند
+        1) NET_MODE=2 ;;
+        2) NET_MODE=1 ;;
+        *) NET_MODE=3 ;;
     esac
     export NET_MODE
     echo -e "   ${GREEN}✔ Network configuration locked!${NC}\n"

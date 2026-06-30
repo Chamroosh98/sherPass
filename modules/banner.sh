@@ -1,11 +1,14 @@
 #!/bin/sh
 # shellcheck shell=ash
+# ==============================================================================
+#  DayPass Framework - Core Telemetry & Visual Identity Component
+#  Architect: Chamroosh (ch4mr0sh)
+# ==============================================================================
 
 generate_custom_banner() {
     local PURPLE="\033[38;5;141m"
     local CYAN="\033[1;38;5;51m"
     local GRAY="\033[90m"
-    local GREEN="\033[32m"
     local NC="\033[0m"
 
     clear
@@ -15,7 +18,6 @@ generate_custom_banner() {
     echo -e "${PURPLE} | |_| | (_| | |_| |  __/ (_| \\__ \\__ \\${NC}"
     echo -e "${PURPLE} |____/ \\__,_|\\__, |_|   \\__,_|___/___/${NC}"
     echo -e "${PURPLE}              |___/                    ${NC}"
-    echo -e "  ${CYAN}☀️ DayPass Framework Engine Active${NC}"
     echo -e "  ${GRAY}⭐ Deployed by Chamroosh98 ${NC}"
     echo -e "${PURPLE}---------------------------------------------------------${NC}"
     
@@ -42,11 +44,11 @@ generate_custom_banner() {
 draw_header() {
     local arch=$1
     local pkg_mgr=$2
+    local PURPLE="\033[38;5;141m"
+    local CYAN="\033[1;38;5;51m"
+    local NC="\033[0m"
     
-    echo -e "\n${PURPLE}┌───────────────────────────────────────────────┐${NC}"
-    echo -e "${PURPLE}│${NC}    ${CYAN}DayPass Pro Auto-Installer Component${NC}       ${PURPLE}│${NC}"
-    echo -e "${PURPLE}├───────────────────────────────────────────────┤${NC}"
-    echo -e "${PURPLE}│${NC}  Arch: ${arch}    ${PURPLE}│${NC}"
-    echo -e "${PURPLE}│${NC}  Manager: ${pkg_mgr}                                 ${PURPLE}│${NC}"
-    echo -e "${PURPLE}└───────────────────────────────────────────────┘${NC}"
+    echo -e "\n ${CYAN}>> DayPass Pro Auto-Installer Component${NC}"
+    echo -e " ${PURPLE}>> Arch:${NC} ${arch}  ${PURPLE}|  Manager:${NC} ${pkg_mgr}"
+    echo -e "${PURPLE}---------------------------------------------------------${NC}"
 }
