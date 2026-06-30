@@ -1,12 +1,14 @@
 #!/bin/sh
 # shellcheck shell=ash
 
-# 📌 مسیرهای مرجع و فایل لاگ
 export LOG_FILE="/tmp/DayPass.log"
 export GITHUB_RAW_URL="https://raw.githubusercontent.com/Chamroosh98/DayPass/main"
 export BASE_MODULES="/tmp/daypass_space/modules"
 
-# 🎨 کدهای رنگی استاندارد برای خروجی مینیمال ترمینال
+# مقداردهی اولیه امن برای جلوگیری از ارور out of range
+export NET_MODE=3
+
+# 🎨 کدهای رنگی استاندارد
 export CYAN="\033[1;38;5;51m"
 export PURPLE="\033[38;5;141m"
 export GREEN="\033[32m"

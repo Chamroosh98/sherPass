@@ -1,10 +1,25 @@
 #!/bin/sh
 # shellcheck shell=ash
+# ==============================================================================
+#  DayPass Framework - Ultimate OpenWrt Deployment Engine (Fix Order Edition)
+#  Architect: Chamroosh (ch4mr0sh)
+#  Dedicated to the immortal souls of 18-19 Dey 1404 🕊️
+# ==============================================================================
 
 clear
 
-[ -f "./consts.sh" ] && . ./consts.sh
+# 📥 ۱. لود فوری ثوابت پروژه و مسیرها
+if [ -f "./consts.sh" ]; then
+    . ./consts.sh
+else
+    export LOG_FILE="/tmp/DayPass.log"
+    export GITHUB_RAW_URL="https://raw.githubusercontent.com/Chamroosh98/DayPass/main"
+    export BASE_MODULES="/tmp/daypass_space/modules"
+    export NET_MODE=3
+    export CYAN="\033[1;38;5;51m"; export PURPLE="\033[38;5;141m"; export GREEN="\033[32m"; export YELLOW="\033[33m"; export GRAY="\033[90m"; export RED="\033[31m"; export NC="\033[0m"
+fi
 
+# ⚙️ ۲. تشخیص مدیریت پکیج و معماری روتر
 if command -v apk >/dev/null 2>&1; then
     PKG_MGR="apk"; INSTALL_CMD="apk add --allow-untrusted"; REMOVE_CMD="apk del"
     ARCH=$(apk info -o kernel 2>/dev/null | grep -E -o 'arm_.*|mips_.*|x86_64|aarch64' | head -n 1)
@@ -14,22 +29,38 @@ else
 fi
 [ -z "$ARCH" ] && ARCH="arm_cortex-a7_neon-vfpv4"
 
+# 📥 ۳. تنظیم دقیق فلگ‌های دانلود بر اساس کانفیگ زنده
 echo -e "${YELLOW}➔ Synchronizing DayPass core modules...${NC}"
 mkdir -p "${BASE_MODULES}/feeds"
 
 CURL_OPTS="-sS -L --insecure --connect-timeout 8"
-[ "$NET_MODE" -ne 1 ] && CURL_OPTS="$CURL_OPTS --socks5-hostname 127.0.0.1:8090"
+if [ "$NET_MODE" -ne 1 ]; then
+    CURL_OPTS="$CURL_OPTS --socks5-hostname 127.0.0.1:8090"
+fi
 
+# دانلود ایمن لودر آنلاین
 if command -v curl >/dev/null 2>&1; then
     curl $CURL_OPTS -o "${BASE_MODULES}/loader.sh" "${GITHUB_RAW_URL}/modules/loader.sh?v=$(date +%s)" 2>/dev/null
 fi
-[ ! -f "${BASE_MODULES}/loader.sh" ] && wget -qO "${BASE_MODULES}/loader.sh" "${GITHUB_RAW_URL}/modules/loader.sh?v=$(date +%s)"
 
+if [ ! -f "${BASE_MODULES}/loader.sh" ]; then
+    wget -qO "${BASE_MODULES}/loader.sh" "${GITHUB_RAW_URL}/modules/loader.sh?v=$(date +%s)" 2>/dev/null
+fi
+
+# بررسی نهایی قبل از اجرای لودر برای جلوگیری از کرش
+if [ ! -s "${BASE_MODULES}/loader.sh" ]; then
+    echo -e "${RED}❌ Critical: Cannot download loader.sh from GitHub. Check connection!${NC}"
+    exit 1
+fi
+
+# اجرای لودر آنلاین
 . "${BASE_MODULES}/loader.sh"
 run_online_loader "$GITHUB_RAW_URL" "$@"
 
+# 🌐 ۴. فراخوانی منوی انتخاب شبکه از داخل ماژول اختصاصی تازه دانلود شده
 show_network_menu
 
+# 👑 ۵. رندر بنر گرافیکی تمیز شده
 generate_custom_banner
 
 run_optimized_installation() {
@@ -103,6 +134,7 @@ run_factory_reset() {
     fi
 }
 
+# 📱 هاب منوی اصلی تعاملی تعبیه شده
 while true; do
     draw_header "$ARCH" "$PKG_MGR"
     echo -e "  ${PURPLE}[1]${NC} Optimized Installation ${GRAY}(Cores + LuCI Selection)${NC}"
