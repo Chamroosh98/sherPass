@@ -13,7 +13,7 @@ generate_custom_banner() {
     echo -e "             |___/                         ${NC}"
     echo -e "${GRAY}Remembering the IRAN massacre on January 8 and 9, 2026 🕊️ ${NC}"
     echo -e "${GRAY}Deployed by Chamroosh98${NC}"
-    echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
+    echo -e "${PURPLE}───────────────────────────────────────────────────────${NC}"
 }
 
 draw_header() {

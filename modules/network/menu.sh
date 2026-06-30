@@ -14,7 +14,7 @@ show_network_menu() {
         echo -e "             |___/                         ${NC}"
         echo -e "${GRAY}Remembering the IRAN massacre on January 8 and 9, 2026 🕊️ ${NC}"
         echo -e "${GRAY}Deployed by Chamroosh98${NC}"
-        echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
+        echo -e "${PURPLE}───────────────────────────────────────────────────────${NC}"
         
         echo -e "${PURPLE} 📡 NETWORK GATEWAY ${NC}"
         echo -e "${NC}Choose one of way for Connection : ${NC}"
@@ -34,17 +34,17 @@ show_network_menu() {
             1)
                 NET_MODE=2; export NET_MODE
                 echo -e "\n  ${GREEN}✔ Network configuration locked to [Proxy Tunnel]!${NC}"
-                echo -e "${PURPLE}-------------------------------------------------${NC}"
+                echo -e "${PURPLE─────────────────────────────────────────────────NC}"
                 echo ""; sleep 1; break ;;
             2)
                 NET_MODE=1; export NET_MODE
                 echo -e "\n  ${GREEN}✔ Network configuration locked to [Direct Connection]!${NC}"
-                echo -e "${PURPLE}-------------------------------------------------${NC}"
+                echo -e "${PURPLE─────────────────────────────────────────────────NC}"
                 echo ""; sleep 1; break ;;
             3)
                 NET_MODE=3; export NET_MODE
                 echo -e "\n  ${GREEN}✔ Network configuration locked to [Smart Fallback]!${NC}"
-                echo -e "${PURPLE}-------------------------------------------------${NC}"
+                echo -e "${PURPLE─────────────────────────────────────────────────NC}"
                 echo ""; sleep 1; break ;;
             [hH])
                 clear
@@ -56,7 +56,7 @@ show_network_menu() {
                 echo ""
                 echo -e "  ${CYAN}• 🐧 Linux Users (Via Hiddify | V2rayN | Throne | ...) :${NC}"
                 echo -e "    Run this command from your local terminal [Konsole] BEFORE starting script for use of Remote Port Forwarding :"
-                echo -e "    ssh -R 8090:localhost:10808 root@[router's ip ${GRAY} for example: 192.168.1.1]${NC}"
+                echo -e "    ssh -R 8090:localhost:10808 root@[router's ip ${GRAY} for example: 192.168.1.1${NC}]"
                 echo ""
                 echo -e "  ${CYAN}• 🪟 Windows Users (Via Hiddify | V2rayN | Throne | Nekoray | ...) :${NC}"
                 echo -e "    1. Enable 'Allow LAN' inside v2rayN settings"
