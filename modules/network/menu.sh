@@ -12,7 +12,7 @@ show_network_menu() {
         echo -e "| |_| | (_| | |_| |  __/ (_| \\__ \\__ \\    "
         echo -e "|____/ \\__,_|\\__, |_|   \\__,_|___/___/    "
         echo -e "             |___/                         ${NC}"
-        echo -e "${GRAY}Remembering the IRAN massacre on January 8 and 9, 2026 🕊️ ${NC}"
+        echo -e "${GRAY}🕊️ Remembering the IRAN massacre on January 8 and 9, 2026 ... ${NC}"
         echo -e "${GRAY}🐱 github.com/Chamroosh98${NC}"        
         echo -e "${PURPLE}───────────────────────────────────────────────────────${NC}"
         
@@ -37,7 +37,7 @@ show_network_menu() {
                 export https_proxy="socks5h://127.0.0.1:8090"
                 export HTTP_PROXY="socks5h://127.0.0.1:8090"
                 export HTTPS_PROXY="socks5h://127.0.0.1:8090"
-                echo -e "\n  ${GREEN}✔ Network configuration locked to [Proxy Tunnel]!${NC}"
+                echo -e "\n  ${GREEN}✅ Network configuration locked to [Proxy Tunnel]!${NC}"
                 echo -e "     ${GRAY}🌐 System proxies mapped to socks5h://127.0.0.1:8090${NC}"
                 echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
                 echo ""; sleep 1; break ;;
@@ -53,7 +53,7 @@ show_network_menu() {
                 export https_proxy="socks5h://127.0.0.1:8090"
                 export HTTP_PROXY="socks5h://127.0.0.1:8090"
                 export HTTPS_PROXY="socks5h://127.0.0.1:8090"
-                echo -e "\n  ${GREEN}✔ Network configuration locked to [Smart Fallback]!${NC}"
+                echo -e "\n  ${GREEN}✅ Network configuration locked to [Smart Fallback]!${NC}"
                 echo -e "     ${GRAY}🌐 Initial proxy handshake routed through SOCKS5 tunnel${NC}"
                 echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
                 echo ""; sleep 1; break ;;

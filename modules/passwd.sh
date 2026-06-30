@@ -11,7 +11,7 @@ enforce_root_password() {
         return 0
     fi
 
-    echo -e "\n\033[1;31m⚠️ SECURITY ALERT : ROOT PASSWORD IS NOT DEFINED! 🔓\033[0m"
+    echo -e "\n\033[1;31m⚠️ SECURITY ALERT : ROOT PASSWORD IS NOT DEFINED!\033[0m"
     local new_pass=""
     
     while true; do
@@ -27,7 +27,7 @@ enforce_root_password() {
         (echo "$new_pass"; sleep 1; echo "$new_pass") | passwd root >/dev/null 2>&1
         
         if [ $? -eq 0 ]; then
-            echo -e "\033[1;32m ✅ Root password securely registered! \033[0m\n"
+            echo -e "\033[1;32m✅ Root password securely registered! \033[0m\n"
             break
         fi
         echo -e "❌ Error : Failed to set password. Try again! \n"

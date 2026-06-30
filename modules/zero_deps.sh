@@ -6,7 +6,7 @@ deploy_system_dependencies() {
     local ins_cmd=$2
     local log_file=$3
 
-    echo -e "${YELLOW}♻️ Updating system package repositories (${pkg_mgr}) ... ${NC}"
+    echo -e "${YELLOW}♻️ Updating system package repositories (${pkg_mgr})! ${NC}"
     if [ "$pkg_mgr" = "apk" ]; then
         apk update >> "$log_file" 2>&1
     else
