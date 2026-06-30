@@ -69,7 +69,7 @@ show_network_menu() {
                 read -r _unused </dev/tty
                 ;;
             0)
-                echo -e "\n${RED}[-] Deployment terminated by user. Goodbye!${NC}"
+                echo -e "\n${GREEN} Goodbye!${NC}"
                 exit 0 ;;
             *)
                 echo -e "\n${RED}[!] Critical: Invalid input ('$net_choice'). Please type 1, 2, 3, H or 0!${NC}\n"
