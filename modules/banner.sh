@@ -29,7 +29,7 @@ draw_header() {
     if [ -z "$public_ip" ]; then
         public_ip="${RED}No Internet / Blocked 🔒${NC}"
     else
-        public_ip="${GREEN}${public_ip} 🌍${NC}"
+        public_ip="${GREEN}${public_ip} ${NC}"
     fi
 
     local total_mem used_mem free_mem

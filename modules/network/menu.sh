@@ -63,7 +63,8 @@ show_network_menu() {
                 echo -e "${YELLOW}💡 DAYPASS CONNECTION GUIDE :${NC}"
                 echo -e "${PURPLE}-------------------------------------------------${NC}"
                 echo -e "  If GitHub/SourceForge is censored or throttled on your infrastructure,"
-                echo -e "  you must route the router traffic through an active workstation proxy ;D"
+                echo -e "${GRAY} [special if U R in IRAN and use of Arzeshi's Internet! 🪤] ${NC}"
+                echo -e "  anyway! you must route the router traffic through an active workstation proxy ;D"
                 echo ""
                 echo -e "  ${CYAN}• 🐧 Linux Users (Via Hiddify | V2rayN | Throne | ...) :${NC}"
                 echo -e "    Run this command from your local terminal [Konsole] BEFORE starting script for use of Remote Port Forwarding :"
@@ -74,7 +75,7 @@ show_network_menu() {
                 echo -e "    2. Select any ssh application (like Putty, Bitvise, or ..)"
                 echo -e "    3. Set 127.0.0.1:10808 for SOCKS/HTTP Proxy Forwarding in Network section!"
                 echo -e "    4. Finally! Create a ssh session that use of this proxy!"
-                echo -e "    "
+                echo -e ""
                 echo -e "${GRAY} Press Enter to return to the network selection menu ! ${NC}"
                 read -r _unused </dev/tty
                 ;;

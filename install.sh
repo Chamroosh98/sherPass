@@ -1,5 +1,9 @@
 #!/bin/sh
 # shellcheck shell=ash
+# ==============================================================================
+#  DayPass Framework - Ultimate OpenWrt Deployment Engine (Lifecycle & Cores Fixed)
+#  Architect: Chamroosh (ch4mr0sh)
+# ==============================================================================
 
 clear
 
@@ -12,7 +16,7 @@ else
     export CYAN="\033[1;38;5;51m"; export PURPLE="\033[38;5;141m"; export GREEN="\033[32m"; export YELLOW="\033[33m"; export GRAY="\033[90m"; export RED="\033[31m"; export NC="\033[0m"
 fi
 
-# ⚙️
+# ⚙️ تشخیص پکیج منیجر و معماری سخت‌افزاری روتر
 if command -v apk >/dev/null 2>&1; then
     PKG_MGR="apk"; INSTALL_CMD="apk add --allow-untrusted"; REMOVE_CMD="apk del"
     ARCH=$(apk info -o kernel 2>/dev/null | grep -E -o 'arm_.*|mips_.*|x86_64|aarch64' | head -n 1)
@@ -28,6 +32,7 @@ mkdir -p "${BASE_MODULES}/network"
 
 INIT_OPTS="-sS -L --insecure --connect-timeout 10"
 
+# دانلود اجزای اولیه استارت‌آپ به صورت ارتباط مستقیم
 if command -v curl >/dev/null 2>&1; then
     curl $INIT_OPTS -o "${BASE_MODULES}/zero_deps.sh" "${GITHUB_RAW_URL}/modules/zero_deps.sh?v=$(date +%s)" 2>/dev/null
     curl $INIT_OPTS -o "${BASE_MODULES}/loader.sh" "${GITHUB_RAW_URL}/modules/loader.sh?v=$(date +%s)" 2>/dev/null
@@ -73,7 +78,7 @@ run_optimized_installation() {
 
     echo -e "\n${YELLOW}⚡ Optimization Prompt :${NC}"
     while true; do
-        printf "Do you want to install ${CYAN}sing-box${NC} core? (Heavy on low-end devices) [y/n] : "
+        printf "🤔 Do you want to install ${CYAN}sing-box${NC} core? ${RED}(💩 Heavy on low-end devices!)${NC} [y/n] : "
         read -r raw_input </dev/tty
         check_result=$(validate_ascii_input "$raw_input")
         [ "$check_result" = "empty" ] && { install_singbox="n"; break; }
@@ -87,18 +92,39 @@ run_optimized_installation() {
     # دپندنس‌ها یک بار همان اول نصب شدند، اما برای اطمینان مجدد چک می‌شوند
     deploy_system_dependencies "$PKG_MGR" "$INSTALL_CMD" "$LOG_FILE"
     
-    echo -e "\n➔ Deep cleaning old/conflicting Passwall components! 🧼"
-    execute_purge_sequence "$PKG_MGR" "$REMOVE_CMD"
+    echo -e "\n🧼 Deep cleaning old/conflicting Passwall components! "
+    # زره‌پوش کردن دستور پاکسازی برای جلوگیری از ارورهای ناگهانی شل
+    if command -v execute_purge_sequence >/dev/null 2>&1; then
+        execute_purge_sequence "$PKG_MGR" "$REMOVE_CMD"
+    else
+        echo -e "${YELLOW}⚠️ Warning: Cleaner engine not fully mapped in memory. Skipping purge...${NC}"
+    fi
     
-    echo -e "\n${CYAN}[Phase 1/2 : Deploying Micro Proxy Cores] 🌐 ${NC}"
+    echo -e "\n${CYAN}🌐 [Phase 1/2 : Deploying Micro Proxy Cores]${NC}"
+    
+    # 1️⃣ نصب مستقل و زره‌پوش پکیج xray-core
+    echo -e "➔ Processing ${CYAN}xray-core${NC} deployment..."
     download_from_openwrt_feed "xray-core" "$INSTALL_CMD" "$LOG_FILE" || \
+    download_from_sourceforge_feed "passwall_packages" "xray-core" "$INSTALL_CMD" "$LOG_FILE" || return 1
+
+    # 2️⃣ نصب مستقل پکیج xray-plugin
+    echo -e "➔ Processing ${CYAN}xray-plugin${NC} deployment..."
+    download_from_openwrt_feed "xray-plugin" "$INSTALL_CMD" "$LOG_FILE" || \
     download_from_sourceforge_feed "passwall_packages" "xray-plugin" "$INSTALL_CMD" "$LOG_FILE" || return 1
+
+    # 3️⃣ نصب مستقل پکیج tcping
+    echo -e "➔ Processing ${CYAN}tcping${NC} deployment..."
     download_from_openwrt_feed "tcping" "$INSTALL_CMD" "$LOG_FILE" || \
     download_from_sourceforge_feed "passwall_packages" "tcping" "$INSTALL_CMD" "$LOG_FILE" || return 1
+
+    # 4️⃣ نصب مستقل پکیج geoview
+    echo -e "➔ Processing ${CYAN}geoview${NC} deployment..."
     download_from_openwrt_feed "geoview" "$INSTALL_CMD" "$LOG_FILE" || \
     download_from_sourceforge_feed "passwall_packages" "geoview" "$INSTALL_CMD" "$LOG_FILE" || return 1
     
+    # 5️⃣ نصب شرطی پکیج سنگین sing-box
     if [ "$install_singbox" = "y" ]; then
+        echo -e "➔ Processing ${CYAN}sing-box${NC} deployment..."
         download_from_openwrt_feed "sing-box" "$INSTALL_CMD" "$LOG_FILE" || \
         download_from_sourceforge_feed "passwall_packages" "sing-box" "$INSTALL_CMD" "$LOG_FILE" || return 1
     fi
@@ -109,7 +135,7 @@ run_optimized_installation() {
     local install_fa="n" fa_input=""
     echo -e "\n${YELLOW}🌐 Language Pack Selection :${NC}"
     while true; do
-        printf "Do you want to install ${CYAN}Persian (FA) 🦁☀️${NC} language pack? [y/n] : "
+        printf "🦁☀️ Do you want to install ${GREEN}Persian (FA)${NC} language pack? [y/n] : "
         read -r fa_input </dev/tty
         check_result=$(validate_ascii_input "$fa_input")
         [ "$check_result" = "empty" ] && { install_fa="n"; break; }
@@ -124,7 +150,7 @@ run_optimized_installation() {
         download_from_sourceforge_feed "passwall2" "luci-i18n-passwall2-fa" "$INSTALL_CMD" "$LOG_FILE" || return 1
     fi
     
-    echo -e "\n${GREEN}✔ Deployment flawless! DayPass Engine is fully running. 🔥${NC}"
+    echo -e "\n${GREEN}🔥 Deployment flawless! DayPass Engine is fully running! ${NC}"
     exit 0
 }
 
