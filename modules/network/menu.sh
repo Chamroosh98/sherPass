@@ -16,15 +16,15 @@ show_network_menu() {
         echo -e "${GRAY}Deployed by Chamroosh98${NC}"
         echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
         
-        echo -e "📡 ${CYAN}DAYPASS NETWORK GATEWAY${NC}"
-        echo -e "${GRAY}Configure deployment routing before core synchronization${NC}"
+        echo -e "{PURPLE} 📡 NETWORK GATEWAY ${NC}"
+        echo -e "${NC}Choose one of way for Connection : ${NC}"
         echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
         echo -e "  ${PURPLE}[1]${NC} Proxy Tunnel ${GRAY}(SOCKS5 127.0.0.1:8090)${NC}"
         echo -e "  ${PURPLE}[2]${NC} Direct Connection ${GRAY}(No Proxy / Native System)${NC}"
         echo -e "  ${PURPLE}[3]${NC} Smart Resilient Fallback ${GRAY}(Recommended)${NC}"
         echo -e "  ${YELLOW}[H]${NC} Help & Advanced Connection Guide"
         echo -e "  ${RED}[0]${NC} Abort & Exit"
-        echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
+        echo -e ""
         printf "  Select network routing [1-3, H for Help, 0 to exit]: "
         
         local net_choice; read -r net_choice </dev/tty
