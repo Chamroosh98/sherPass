@@ -1,5 +1,9 @@
 #!/bin/sh
 # shellcheck shell=ash
+# ==============================================================================
+#  DayPass Framework - Ultimate OpenWrt Deployment Engine (Lifecycle Fixed)
+#  Architect: Chamroosh (ch4mr0sh)
+# ==============================================================================
 
 clear
 
@@ -12,7 +16,7 @@ else
     export CYAN="\033[1;38;5;51m"; export PURPLE="\033[38;5;141m"; export GREEN="\033[32m"; export YELLOW="\033[33m"; export GRAY="\033[90m"; export RED="\033[31m"; export NC="\033[0m"
 fi
 
-# ⚙️
+# ⚙️ تشخیص پکیج منیجر و معماری روتر
 if command -v apk >/dev/null 2>&1; then
     PKG_MGR="apk"; INSTALL_CMD="apk add --allow-untrusted"; REMOVE_CMD="apk del"
     ARCH=$(apk info -o kernel 2>/dev/null | grep -E -o 'arm_.*|mips_.*|x86_64|aarch64' | head -n 1)
@@ -28,6 +32,7 @@ mkdir -p "${BASE_MODULES}/network"
 
 INIT_OPTS="-sS -L --insecure --connect-timeout 10"
 
+# دانلود فاز اول: پکیج‌های پایه برای راه‌اندازی (استفاده از شبکه مستقیم روتر)
 if command -v curl >/dev/null 2>&1; then
     curl $INIT_OPTS -o "${BASE_MODULES}/zero_deps.sh" "${GITHUB_RAW_URL}/modules/zero_deps.sh?v=$(date +%s)" 2>/dev/null
     curl $INIT_OPTS -o "${BASE_MODULES}/loader.sh" "${GITHUB_RAW_URL}/modules/loader.sh?v=$(date +%s)" 2>/dev/null
@@ -38,19 +43,32 @@ else
     wget -qO "${BASE_MODULES}/network/menu.sh" "${GITHUB_RAW_URL}/modules/network/menu.sh?v=$(date +%s)" 2>/dev/null
 fi
 
-if [ ! -s "${BASE_MODULES}/loader.sh" ] || [ ! -s "${BASE_MODULES}/network/menu.sh" ]; then
+# ولیدیتور اولیه اسکریپت
+if [ ! -s "${BASE_MODULES}/loader.sh" ] || [ ! -s "${BASE_MODULES}/network/menu.sh" ] || [ ! -s "${BASE_MODULES}/zero_deps.sh" ]; then
     echo -e "${RED}❌ Critical: Bootloader failed to fetch core structures from GitHub.${NC}"
     exit 1
 fi
 
+# 🔥 گام حیاتی ۱: اجرای ضربتی تزریق دپندنس‌ها (تضمین مجهز شدن روتر به دستور curl واقعی قبل از هر چیز)
+. "${BASE_MODULES}/zero_deps.sh"
+deploy_system_dependencies "$PKG_MGR" "$INSTALL_CMD" "$LOG_FILE"
+
+# 📡 گام حیاتی ۲: لود منوی هوشمند شبکه با داشتن ابزار کرل پایدار
 . "${BASE_MODULES}/network/menu.sh"
 show_network_menu
 
+# 🚀 گام حیاتی ۳: سینک بقیه ماژول‌های هسته بدون تداخل محیطی پروکسی (با منطق ایزوله شده در خود لودر)
 echo -e "${YELLOW}➔ Synchronizing remaining DayPass core modules...${NC}"
 . "${BASE_MODULES}/loader.sh"
 run_online_loader "$GITHUB_RAW_URL" "$@"
 
-generate_custom_banner
+# در این مرحله مطمئن هستیم banner.sh دانلود شده و می‌توان آن را صدا زد
+if [ -s "${BASE_MODULES}/banner.sh" ]; then
+    . "${BASE_MODULES}/banner.sh"
+else
+    echo -e "${RED}❌ Critical: Dynamic banner module is missing inside storage.${NC}"
+    exit 1
+fi
 
 run_optimized_installation() {
     local raw_input="" check_result="" install_singbox="n"
@@ -69,6 +87,7 @@ run_optimized_installation() {
         esac
     done
     
+    # دپندنس‌ها یک بار همان اول نصب شدند، اما برای اطمینان مجدد چک می‌شوند
     deploy_system_dependencies "$PKG_MGR" "$INSTALL_CMD" "$LOG_FILE"
     
     echo -e "\n➔ Deep cleaning old/conflicting Passwall components..."
@@ -123,12 +142,11 @@ run_factory_reset() {
     fi
 }
 
-# 📱
+# 📱 هاب تعاملی منوی اصلی
 while true; do
     clear
     
     generate_custom_banner
-    
     draw_header "$ARCH" "$PKG_MGR"
     
     echo -e "  ${PURPLE}[1]${NC} Optimized Installation ${GRAY}(Cores + LuCI Selection)${NC}"
