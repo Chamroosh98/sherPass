@@ -1,7 +1,7 @@
 #!/bin/sh
 # shellcheck shell=ash
 # ==============================================================================
-#  DayPass Framework - Ultimate OpenWrt Deployment Engine (Fix Order Edition)
+#  DayPass Framework - Ultimate OpenWrt Deployment Engine (FailSafe Boot)
 #  Architect: Chamroosh (ch4mr0sh)
 #  Dedicated to the immortal souls of 18-19 Dey 1404 🕊️
 # ==============================================================================
@@ -15,7 +15,6 @@ else
     export LOG_FILE="/tmp/DayPass.log"
     export GITHUB_RAW_URL="https://raw.githubusercontent.com/Chamroosh98/DayPass/main"
     export BASE_MODULES="/tmp/daypass_space/modules"
-    export NET_MODE=3
     export CYAN="\033[1;38;5;51m"; export PURPLE="\033[38;5;141m"; export GREEN="\033[32m"; export YELLOW="\033[33m"; export GRAY="\033[90m"; export RED="\033[31m"; export NC="\033[0m"
 fi
 
@@ -29,38 +28,37 @@ else
 fi
 [ -z "$ARCH" ] && ARCH="arm_cortex-a7_neon-vfpv4"
 
-# 📥 ۳. تنظیم دقیق فلگ‌های دانلود بر اساس کانفیگ زنده
-echo -e "${YELLOW}➔ Synchronizing DayPass core modules...${NC}"
+echo -e "${YELLOW}➔ Initializing DayPass Bootloader...${NC}"
 mkdir -p "${BASE_MODULES}/feeds"
+mkdir -p "${BASE_MODULES}/network"
 
-CURL_OPTS="-sS -L --insecure --connect-timeout 8"
-if [ "$NET_MODE" -ne 1 ]; then
-    CURL_OPTS="$CURL_OPTS --socks5-hostname 127.0.0.1:8090"
-fi
+# 🔒 دانلود لودر اولیه به صورت کاملاً Direct (بدون پروکسی) برای جلوگیری از خطای کانتکست
+INIT_OPTS="-sS -L --insecure --connect-timeout 10"
 
-# دانلود ایمن لودر آنلاین
 if command -v curl >/dev/null 2>&1; then
-    curl $CURL_OPTS -o "${BASE_MODULES}/loader.sh" "${GITHUB_RAW_URL}/modules/loader.sh?v=$(date +%s)" 2>/dev/null
-fi
-
-if [ ! -f "${BASE_MODULES}/loader.sh" ]; then
+    curl $INIT_OPTS -o "${BASE_MODULES}/loader.sh" "${GITHUB_RAW_URL}/modules/loader.sh?v=$(date +%s)" 2>/dev/null
+    curl $INIT_OPTS -o "${BASE_MODULES}/network/menu.sh" "${GITHUB_RAW_URL}/modules/network/menu.sh?v=$(date +%s)" 2>/dev/null
+else
     wget -qO "${BASE_MODULES}/loader.sh" "${GITHUB_RAW_URL}/modules/loader.sh?v=$(date +%s)" 2>/dev/null
+    wget -qO "${BASE_MODULES}/network/menu.sh" "${GITHUB_RAW_URL}/modules/network/menu.sh?v=$(date +%s)" 2>/dev/null
 fi
 
-# بررسی نهایی قبل از اجرای لودر برای جلوگیری از کرش
-if [ ! -s "${BASE_MODULES}/loader.sh" ]; then
-    echo -e "${RED}❌ Critical: Cannot download loader.sh from GitHub. Check connection!${NC}"
+# بررسی وجود کامپوننت‌های پایه قبل از اجرا
+if [ ! -s "${BASE_MODULES}/loader.sh" ] || [ ! -s "${BASE_MODULES}/network/menu.sh" ]; then
+    echo -e "${RED}❌ Critical: Bootloader failed to fetch core structures from GitHub.${NC}"
     exit 1
 fi
 
-# اجرای لودر آنلاین
+# لود کردن منوی شبکه و اجرای آن برای تعیین مسیر اصلی توسط کاربر
+. "${BASE_MODULES}/network/menu.sh"
+show_network_menu
+
+# حالا که کاربر شبکه را انتخاب کرد، لودر اصلی را با کانفیگ انتخابی ران می‌کنیم
+echo -e "${YELLOW}➔ Synchronizing remaining DayPass core modules...${NC}"
 . "${BASE_MODULES}/loader.sh"
 run_online_loader "$GITHUB_RAW_URL" "$@"
 
-# 🌐 ۴. فراخوانی منوی انتخاب شبکه از داخل ماژول اختصاصی تازه دانلود شده
-show_network_menu
-
-# 👑 ۵. رندر بنر گرافیکی تمیز شده
+# 👑 ۳. رندر بنر گرافیکی اصلی
 generate_custom_banner
 
 run_optimized_installation() {
@@ -134,7 +132,7 @@ run_factory_reset() {
     fi
 }
 
-# 📱 هاب منوی اصلی تعاملی تعبیه شده
+# 📱 هاب منوی اصلی
 while true; do
     draw_header "$ARCH" "$PKG_MGR"
     echo -e "  ${PURPLE}[1]${NC} Optimized Installation ${GRAY}(Cores + LuCI Selection)${NC}"
