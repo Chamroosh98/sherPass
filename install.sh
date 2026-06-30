@@ -1,11 +1,11 @@
 #!/bin/sh
 # shellcheck shell=ash
 
-######### In memory of the brutal massacre of IRAN in 8-9 january 2026 #########
-# ==============================================================================
+######### In memory of the brutal massacre of IRAN in 8-9 january 2026 (18-19 Day 1404) #########
+# ===============================================================================================
 #  DayPass Framework - Ultimate OpenWrt Deployment Engine
 #  Architect: Chamroosh98
-# ==============================================================================
+# ===============================================================================================
 
 clear
 LOG_FILE="/tmp/DayPass.log"
