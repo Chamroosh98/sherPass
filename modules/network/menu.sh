@@ -33,18 +33,29 @@ show_network_menu() {
         case "$net_choice" in
             1)
                 NET_MODE=2; export NET_MODE
+                export http_proxy="socks5h://127.0.0.1:8090"
+                export https_proxy="socks5h://127.0.0.1:8090"
+                export HTTP_PROXY="socks5h://127.0.0.1:8090"
+                export HTTPS_PROXY="socks5h://127.0.0.1:8090"
                 echo -e "\n  ${GREEN}✔ Network configuration locked to [Proxy Tunnel]!${NC}"
-                echo -e "${PURPLE─────────────────────────────────────────────────NC}"
+                echo -e "     ${GRAY}System proxies mapped to socks5h://127.0.0.1:8090${NC}"
+                echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
                 echo ""; sleep 1; break ;;
             2)
                 NET_MODE=1; export NET_MODE
+                unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY
                 echo -e "\n  ${GREEN}✔ Network configuration locked to [Direct Connection]!${NC}"
-                echo -e "${PURPLE─────────────────────────────────────────────────NC}"
+                echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
                 echo ""; sleep 1; break ;;
             3)
                 NET_MODE=3; export NET_MODE
+                export http_proxy="socks5h://127.0.0.1:8090"
+                export https_proxy="socks5h://127.0.0.1:8090"
+                export HTTP_PROXY="socks5h://127.0.0.1:8090"
+                export HTTPS_PROXY="socks5h://127.0.0.1:8090"
                 echo -e "\n  ${GREEN}✔ Network configuration locked to [Smart Fallback]!${NC}"
-                echo -e "${PURPLE─────────────────────────────────────────────────NC}"
+                echo -e "     ${GRAY}Initial proxy handshake routed through SOCKS5 tunnel${NC}"
+                echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
                 echo ""; sleep 1; break ;;
             [hH])
                 clear

@@ -1,34 +1,25 @@
 #!/bin/sh
 # shellcheck shell=ash
-# ==============================================================================
-#  DayPass Framework - Core Network Orchestrator Logic Component
-#  Architect: Chamroosh (ch4mr0sh)
-#  Function: Multi-Engine Pulling, Smart Verification & Resilient Fallback
-# ==============================================================================
 
 download_package_smart() {
     local sub_folder=$1 local keyword=$2 local arch=$3 local ins_cmd=$4 local log_file=$5
     local space_path="/tmp/DayPass_space/modules/network"
 
-    # ۱. Smart Check (بررسی هوشمند برای جلوگیری از دانلود تکراری و اتلاف حجم)
     if apk info -e "$keyword" >/dev/null 2>&1 || [ "$keyword" = "xray-core" ] && apk info -e "xray-plugin" >/dev/null 2>&1; then
         echo -e "   ${GREEN}✔ [Skipped] $keyword is already deployed flawlessly. No re-download needed! ✨${NC}"
         return 0
     fi
 
-    # ۲. لود منوی یو‌آی شبکه در صورت نیاز و عدم وجود کانفیگ قبلی
     if [ -z "$NET_MODE" ]; then
         . "$space_path/menu.sh"
         show_network_menu
     fi
 
-    # ۳. نگاشت درست مسیرها و پکیج‌های سورس‌فورج
     local remote_folder="$sub_folder"
     [ "$sub_folder" = "passwall_luci" ] && remote_folder="passwall2"
     local search_keyword="$keyword"
     [ "$keyword" = "xray-core" ] && search_keyword="xray-plugin"
 
-    # ۴. امپورت داینامیک ماژول کانکشن اختصاصی بر اساس انتخاب کاربر
     if [ "$NET_MODE" -eq 1 ]; then
         . "$space_path/direct.sh"
         local engine_mode="direct"
@@ -42,7 +33,6 @@ download_package_smart() {
 
     print_status "work" "Scanning SourceForge registry for latest $keyword [Engine: $engine_mode]..."
     
-    # اجرای اسکن آنلاین مخزن
     local html_content
     html_content=$([ "$engine_mode" = "direct" ] && fetch_direct "$folder_url" "" "" "$log_file" || fetch_proxy "$folder_url" "" "" "$log_file")
 
@@ -52,7 +42,6 @@ download_package_smart() {
         rm -f "$tmp_html"
     fi
 
-    # فال‌بک استاتیک و پایدار در صورت انسداد یا پکت‌لاست شدید روی اسکنر آنلاین
     if [ -z "$exact_filename" ]; then
         echo -e "   ${YELLOW}⚠️ Registry scan blocked! Activating static fallback...${NC}"
         case "$keyword" in
@@ -69,10 +58,9 @@ download_package_smart() {
     local tmp_target="/tmp/${exact_filename}"
 
     print_status "work" "Fetching $keyword directly from SourceForge..."
-    echo -e "   ${GRAY}📥 Remote Link: $full_download_url${NC}"
-    echo -e "   ${GRAY}💾 Local Destination: $tmp_target (RAM Storage)${NC}"
+    echo -e "   ${GRAY}📥 Remote Link : $full_download_url${NC}"
+    echo -e "   ${GRAY}💾 Local Destination : $tmp_target (RAM Storage)${NC}"
 
-    # ۵. اجرای پروسه دانلود با مکانیزم تاب‌آوری بالا (Smart Proxy Auto-Fallback)
     local dl_status=1
     if [ "$engine_mode" = "direct" ]; then
         fetch_direct "" "$full_download_url" "$tmp_target" "$log_file"; dl_status=$?
@@ -85,7 +73,6 @@ download_package_smart() {
         fi
     fi
 
-    # ۶. لایه تزریق نهایی فایل دریافت شده به هسته سیستم‌عامل روتر
     if [ $dl_status -eq 0 ]; then
         print_status "sub" "Injecting payload into local system core..."
         echo -e "   ${GRAY}⚙️ Engine Command: apk add --allow-untrusted $tmp_target${NC}"
@@ -94,5 +81,5 @@ download_package_smart() {
             rm -f "$tmp_target" && return 0
         fi
     fi
-    print_status "failed" "Critical: Network execution failed for $keyword" && rm -f "$tmp_target" && return 1
+    print_status "failed" "Critical! Network execution failed for $keyword" && rm -f "$tmp_target" && return 1
 }
