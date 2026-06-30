@@ -16,9 +16,9 @@ show_network_menu() {
         echo -e "${GRAY}Deployed by Chamroosh98${NC}"
         echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
         
-        echo -e "{PURPLE} 📡 NETWORK GATEWAY ${NC}"
+        echo -e "${PURPLE} 📡 NETWORK GATEWAY ${NC}"
         echo -e "${NC}Choose one of way for Connection : ${NC}"
-        echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
+        echo -e "${PURPLE}-------------------------------------------------${NC}"
         echo -e "  ${PURPLE}[1]${NC} Proxy Tunnel ${GRAY}(SOCKS5 127.0.0.1:8090)${NC}"
         echo -e "  ${PURPLE}[2]${NC} Direct Connection ${GRAY}(No Proxy / Native System)${NC}"
         echo -e "  ${PURPLE}[3]${NC} Smart Resilient Fallback ${GRAY}(Recommended)${NC}"
@@ -34,17 +34,17 @@ show_network_menu() {
             1)
                 NET_MODE=2; export NET_MODE
                 echo -e "\n  ${GREEN}✔ Network configuration locked to [Proxy Tunnel]!${NC}"
-                echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
+                echo -e "${PURPLE}-------------------------------------------------${NC}"
                 echo ""; sleep 1; break ;;
             2)
                 NET_MODE=1; export NET_MODE
                 echo -e "\n  ${GREEN}✔ Network configuration locked to [Direct Connection]!${NC}"
-                echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
+                echo -e "${PURPLE}-------------------------------------------------${NC}"
                 echo ""; sleep 1; break ;;
             3)
                 NET_MODE=3; export NET_MODE
                 echo -e "\n  ${GREEN}✔ Network configuration locked to [Smart Fallback]!${NC}"
-                echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
+                echo -e "${PURPLE}-------------------------------------------------${NC}"
                 echo ""; sleep 1; break ;;
             [hH])
                 clear
