@@ -12,6 +12,7 @@ else
     export CYAN="\033[1;38;5;51m"; export PURPLE="\033[38;5;141m"; export GREEN="\033[32m"; export YELLOW="\033[33m"; export GRAY="\033[90m"; export RED="\033[31m"; export NC="\033[0m"
 fi
 
+# ⚙️
 if command -v apk >/dev/null 2>&1; then
     PKG_MGR="apk"; INSTALL_CMD="apk add --allow-untrusted"; REMOVE_CMD="apk del"
     ARCH=$(apk info -o kernel 2>/dev/null | grep -E -o 'arm_.*|mips_.*|x86_64|aarch64' | head -n 1)
@@ -21,16 +22,18 @@ else
 fi
 [ -z "$ARCH" ] && ARCH="arm_cortex-a7_neon-vfpv4"
 
-echo -e "${YELLOW}➔ Initializing DayPass Bootloader...${NC}"
+echo -e "${YELLOW}➔ Bootstrapping DayPass Core Engine ...${NC}"
 mkdir -p "${BASE_MODULES}/feeds"
 mkdir -p "${BASE_MODULES}/network"
 
 INIT_OPTS="-sS -L --insecure --connect-timeout 10"
 
 if command -v curl >/dev/null 2>&1; then
+    curl $INIT_OPTS -o "${BASE_MODULES}/zero_deps.sh" "${GITHUB_RAW_URL}/modules/zero_deps.sh?v=$(date +%s)" 2>/dev/null
     curl $INIT_OPTS -o "${BASE_MODULES}/loader.sh" "${GITHUB_RAW_URL}/modules/loader.sh?v=$(date +%s)" 2>/dev/null
     curl $INIT_OPTS -o "${BASE_MODULES}/network/menu.sh" "${GITHUB_RAW_URL}/modules/network/menu.sh?v=$(date +%s)" 2>/dev/null
 else
+    wget -qO "${BASE_MODULES}/zero_deps.sh" "${GITHUB_RAW_URL}/modules/zero_deps.sh?v=$(date +%s)" 2>/dev/null
     wget -qO "${BASE_MODULES}/loader.sh" "${GITHUB_RAW_URL}/modules/loader.sh?v=$(date +%s)" 2>/dev/null
     wget -qO "${BASE_MODULES}/network/menu.sh" "${GITHUB_RAW_URL}/modules/network/menu.sh?v=$(date +%s)" 2>/dev/null
 fi
@@ -120,7 +123,7 @@ run_factory_reset() {
     fi
 }
 
-# 📱 هاب منوی اصلی تعاملی و هوشمند
+# 📱
 while true; do
     clear
     
@@ -168,6 +171,6 @@ while true; do
             ;;
     esac
     
-    echo -e "\nPress Enter to return to main menu..."
+    echo -e "\n${GRAY}Press Enter to return to main menu! ${NC}"
     read -r _unused </dev/tty
 done
