@@ -4,14 +4,15 @@
 generate_custom_banner() {
     clear
 
-    echo -e "${CYAN}____        _     ____               "
-    echo -e "|  _ \  __ _ _   _|  _ \  __ _ ___ ___ "
-    echo -e "| | | |/ _\` | | | | |_) / _\` / __/ __|"
-    echo -e "| |_| | (_| | |_| |  __/ (_| \__ \__ \\"
-    echo -e "|____/ \__,_|\__, |_|   \__,_|___/___/"
-    echo -e "             |___/                    ${NC}"
+    echo ""
+    echo -e "${CYAN} ____              ____                    "
+    echo -e "|  _ \\  __ _ _   _|  _ \\  __ _ ___ ___     "
+    echo -e "| | | |/ _\` | | | | |_) / _\` / __/ __|    "
+    echo -e "| |_| | (_| | |_| |  __/ (_| \\__ \\__ \\    "
+    echo -e "|____/ \\__,_|\\__, |_|   \\__,_|___/___/    "
+    echo -e "             |___/                         ${NC}"
     echo -e "${GRAY}Remembering the IRAN massacre on January 8 and 9, 2026 🕊️ ${NC}"
-    echo -e "${GRAY}⭐ Deployed by Chamroosh98${NC}"
+    echo -e "${GRAY}Deployed by Chamroosh98${NC}"
     echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
 }
 

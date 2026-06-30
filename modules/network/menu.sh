@@ -1,15 +1,10 @@
 #!/bin/sh
 # shellcheck shell=ash
-# ==============================================================================
-#  DayPass Framework - Advanced Network UI Boot-Menu (Pixel Perfect Edition)
-#  Architect: Chamroosh (ch4mr0sh)
-# ==============================================================================
 
 show_network_menu() {
     while true; do
         clear
         
-        # 👑 رندر لوگوی اصلاح شده و بدون خط اضافه سقف (مطابق تراز تصویر day.png)
         echo ""
         echo -e "${CYAN} ____              ____                    "
         echo -e "|  _ \\  __ _ _   _|  _ \\  __ _ ___ ___     "
@@ -17,8 +12,8 @@ show_network_menu() {
         echo -e "| |_| | (_| | |_| |  __/ (_| \\__ \\__ \\    "
         echo -e "|____/ \\__,_|\\__, |_|   \\__,_|___/___/    "
         echo -e "             |___/                         ${NC}"
-        echo -e " Remembering the IRAN massacre on January 8 and 9, 2026 🕊️"
-        echo -e " ⭐️ Deployed by Chamroosh"
+        echo -e "${GRAY}Remembering the IRAN massacre on January 8 and 9, 2026 🕊️ ${NC}"
+        echo -e "${GRAY}Deployed by Chamroosh98${NC}"
         echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
         
         echo -e "📡 ${CYAN}DAYPASS NETWORK GATEWAY${NC}"
