@@ -197,7 +197,7 @@ run_optimized_installation() {
         echo -e "➔ Deploying ${CYAN}${pkg}${NC} via secure native core..."
         echo -e "   ${GRAY}🚀 Command: apk add $pkg${NC}"
         
-        # افزودن فلگ --force-broken-world برای حل مشکلات تداخل ریپازیتوری‌های همزمان در apk اوپن‌ورت ۲۵
+        # استفاده از فلگ‌های سبک و نادیده گرفتن ارورهای غیر بحرانی کانکشن
         if eval "$apk_proxy apk add --allow-untrusted --force-broken-world $pkg" >> "$LOG_FILE" 2>&1; then
             echo -e "   ${GREEN}✔ [Success] $pkg successfully installed!${NC}"
         else

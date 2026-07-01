@@ -1,7 +1,7 @@
 #!/bin/sh
 # shellcheck shell=ash
 # ==============================================================================
-#  DayPass Framework - Advanced Native Feed & JSON Registry Engine (Failsafe Sync)
+#  DayPass Framework - Advanced Native Feed Engine (Failsafe & Memory Optimized)
 #  Architect: Chamroosh (ch4mr0sh)
 # ==============================================================================
 
@@ -15,35 +15,27 @@ initialize_daypass_feeds() {
     local apk_proxy=""
     [ "$NET_MODE" -ne 1 ] && apk_proxy="ALL_PROXY=socks5h://127.0.0.1:8090"
 
-    # ایجاد دایرکتوری در صورت عدم وجود
     mkdir -p /etc/apk/keys /etc/apk/repositories.d
 
-    # ۱. دانلود کلید عمومی با تضمین مسیر کامل
+    # ۱. دانلود کلید عمومی (فقط اگر موجود نباشد)
     if [ ! -f "$key_destination" ]; then
         echo -e "🔑 ${YELLOW}Injecting Passwall Trusted Public Key...${NC}"
         eval curl $c_opts -o "$key_destination" "https://master.dl.sourceforge.net/project/openwrt-passwall-build/apk.pub" >> "$log_file" 2>&1
     fi
 
-    # ۲. ثبت هر ۳ مخزن به صورت تفکیک‌شده و تضمینی
-    local core_feeds="passwall_packages passwall_luci passwall2"
-    local feed_added=0
-
-    # پاکسازی فایل فید قدیمی برای جلوگیری از تکرار یا خطوط خراب
+    # ۲. پاکسازی و بازسازی فایل فیدها فقط "یک‌بار" برای جلوگیری از لوپ‌های تکراری حافظه
     cat /dev/null > "$feed_file"
 
+    local core_feeds="passwall_packages passwall_luci passwall2"
     for feed in $core_feeds; do
         local repo_url="https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/${ARCH}/${feed}"
         echo -e "📡 ${YELLOW}Registering Feed [${feed}] into Custom Feeds...${NC}"
         echo "$repo_url" >> "$feed_file"
-        feed_added=1
     done
 
-    # ۳. آپدیت مخازن با موتور لوکال و پروکسی
-    if [ $feed_added -eq 1 ]; then
-        echo -e "🔄 ${CYAN}Updating APK system indexes under Proxy tunnel...${NC}"
-        # آپدیت ایندکس‌ها با نادیده گرفتن خطاهای جزیی و فورس کردن لود کامل
-        eval "$apk_proxy apk update --allow-untrusted" >> "$log_file" 2>&1
-    fi
+    # ۳. اجرای تنها "یک" دستور apk update سراسری و سبک برای کل سیستم
+    echo -e "🔄 ${CYAN}Updating APK system indexes under Proxy tunnel...${NC}"
+    eval "$apk_proxy apk update" >> "$log_file" 2>&1
 }
 
 fetch_feed_packages_json() {
