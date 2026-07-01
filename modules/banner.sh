@@ -25,8 +25,8 @@ draw_header() {
     [ -z "$router_model" ] && router_model="Generic OpenWrt Device"
     [ -z "$os_release" ] && os_release="25.x (Bleeding Edge)"
 
-    # local public_ip; public_ip=$(curl -s --connect-timeout 2 ifconfig.me 2>/dev/null)
-    local public_ip; public_ip=$(curl -s --connect-timeout 2 api.ipify.org 2>/dev/null)
+    local public_ip; public_ip=$(curl -s --connect-timeout 2 ifconfig.me 2>/dev/null)
+    # local public_ip; public_ip=$(curl -s --connect-timeout 2 api.ipify.org 2>/dev/null)
 
     if [ -z "$public_ip" ]; then
         public_ip="${RED}No Internet / Blocked 🔒${NC}"

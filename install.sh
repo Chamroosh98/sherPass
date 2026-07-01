@@ -72,106 +72,141 @@ else
     exit 1
 fi
 
-run_optimized_installation() {
-    local raw_input="" check_result="" install_singbox="n"
-    enforce_root_password
 
-    echo -e "\n${YELLOW}⚡ Optimization Prompt :${NC}"
-    while true; do
-        printf "🤔 Do you want to install ${CYAN}sing-box${NC} core instead of ${CYAN}xray${NC} core?  ${RED}(💩 Heavy on low-end devices!)${NC} [y/n] : "
-        read -r raw_input </dev/tty
-        check_result=$(validate_ascii_input "$raw_input")
-        [ "$check_result" = "empty" ] && { install_singbox="n"; break; }
-        case "$check_result" in
-            [yY]) install_singbox="y"; break ;;
-            [nN]) install_singbox="n"; break ;;
-            *) echo -e "${RED}[!] ❌ Error : Invalid choice! 😒${NC}\n" ;;
-        esac
-    done
+run_optimized_installation() {
+    enforce_root_password
     
-    # دپندنس‌ها یک بار همان اول نصب شدند، اما برای اطمینان مجدد چک می‌شوند
-    deploy_system_dependencies "$PKG_MGR" "$INSTALL_CMD" "$LOG_FILE"
-    
-    echo -e "\n🧼 Deep cleaning old/conflicting Passwall components! "
-    # زره‌پوش کردن دستور پاکسازی برای جلوگیری از ارورهای ناگهانی شل
-    if command -v execute_purge_sequence >/dev/null 2>&1; then
-        execute_purge_sequence "$PKG_MGR" "$REMOVE_CMD"
-    else
-        echo -e "${YELLOW}⚠️ Warning : Cleaner engine not fully mapped in memory. Skipping purge ...${NC}"
-    fi
-    
-    echo -e "\n${CYAN}🌐 [Phase 1/2 : Deploying Micro Proxy Cores via Native Feed]${NC}"
-    
-    # تنظیم متغیر پروکسی بومی برای اجرای کامندهای apk
+    # راه‌اندازی و سینک مخازن و کلید معتبر سورس‌فورج قبل از شروع
+    echo -e "\n${CYAN}📦 Initializing DayPass Secure Feed Environments ...${NC}"
+    initialize_daypass_feeds "$LOG_FILE"
+
     local apk_proxy=""
     [ "$NET_MODE" -ne 1 ] && apk_proxy="ALL_PROXY=socks5h://127.0.0.1:8090"
 
-    # قدم اول: آماده‌سازی فید سورس‌فورج (فقط بار اول ایندکس‌ها آپدیت می‌شوند)
-    setup_secure_sourceforge_feed "passwall_packages" "$LOG_FILE"
-
-    # قدم دوم: نصب پکیج‌ها مثل بنز با پکیج منیجر اصلی سیستم عامل
-    local packages_to_install="xray-core xray-plugin tcping geoview"
-    [ "$install_singbox" = "y" ] && packages_to_install="${packages_to_install} sing-box"
-
-    for pkg in $packages_to_install; do
-        echo -e "➔ Deploying ${CYAN}${pkg}${NC} via secure native core..."
-        echo -e "   ${GRAY}🚀 Command: apk add $pkg${NC}"
-        
-        if eval "$apk_proxy apk add $pkg" >> "$LOG_FILE" 2>&1; then
-            echo -e "   ${GREEN}✔ [Success] $pkg successfully installed!${NC}"
-        else
-            echo -e "   ${RED}❌ [Failed] APK engine could not deploy $pkg!${NC}"
-            return 1
-        fi
-    done
-
-    # echo -e "\n${CYAN}🌐 [Phase 1/2 : Deploying Micro Proxy Cores]${NC}"
-    # echo -e "⚙️ Processing ${CYAN}xray-core${NC} deployment..."
-    # download_from_openwrt_feed "xray-core" "$INSTALL_CMD" "$LOG_FILE" || \
-    # download_from_sourceforge_feed "passwall_packages" "xray-core" "$INSTALL_CMD" "$LOG_FILE" || return 1
-
-    # echo -e "⚙️ Processing ${CYAN}xray-plugin${NC} deployment..."
-    # download_from_openwrt_feed "xray-plugin" "$INSTALL_CMD" "$LOG_FILE" || \
-    # download_from_sourceforge_feed "passwall_packages" "xray-plugin" "$INSTALL_CMD" "$LOG_FILE" || return 1
-
-    # echo -e "⚙️ Processing ${CYAN}tcping${NC} deployment..."
-    # download_from_openwrt_feed "tcping" "$INSTALL_CMD" "$LOG_FILE" || \
-    # download_from_sourceforge_feed "passwall_packages" "tcping" "$INSTALL_CMD" "$LOG_FILE" || return 1
-
-    # echo -e "⚙️ Processing ${CYAN}geoview${NC} deployment..."
-    # download_from_openwrt_feed "geoview" "$INSTALL_CMD" "$LOG_FILE" || \
-    # download_from_sourceforge_feed "passwall_packages" "geoview" "$INSTALL_CMD" "$LOG_FILE" || return 1
-    
-    # if [ "$install_singbox" = "y" ]; then
-    #     echo -e "⚙️ Processing ${CYAN}sing-box${NC} deployment..."
-    #     download_from_openwrt_feed "sing-box" "$INSTALL_CMD" "$LOG_FILE" || \
-    #     download_from_sourceforge_feed "passwall_packages" "sing-box" "$INSTALL_CMD" "$LOG_FILE" || return 1
-    # fi
-
-    echo -e "\n${CYAN}[Phase 2/2: Injecting LuCI User Interfaces]${NC}"
-    download_from_sourceforge_feed "passwall2" "luci-app-passwall2" "$INSTALL_CMD" "$LOG_FILE" || return 1
-    
-    local install_fa="n" fa_input=""
-    echo -e "\n${YELLOW}🌐 Language Pack Selection :${NC}"
+    # 1️⃣ مرحله اول: انتخاب ورژن Passwall (UX بی‌نقص)
+    local passwall_version=""
+    echo -e "\n${YELLOW}🛠️ Passwall Generation Choice :${NC}"
+    echo -e "  ${PURPLE}[1]${NC} Passwall 1 ${GRAY}(Classic Stable - Core + LuCI Legacy)${NC}"
+    echo -e "  ${PURPLE}[2]${NC} Passwall 2 ${GRAY}(Modern Advanced - Future Proof)${NC}"
     while true; do
-        printf "🦁☀️ Do you want to install ${GREEN}Persian (FA)${NC} language pack? [y/n] : "
-        read -r fa_input </dev/tty
-        check_result=$(validate_ascii_input "$fa_input")
-        [ "$check_result" = "empty" ] && { install_fa="n"; break; }
-        case "$check_result" in
-            [yY]) install_fa="y"; break ;;
-            [nN]) install_fa="n"; break ;;
-            *) echo -e "${RED}[!] ❌ Error: Invalid choice! 😒${NC}\n" ;;
+        printf "  Select Framework Version [1-2]: "
+        read -r v_choice </dev/tty
+        case "$v_choice" in
+            1) passwall_version="passwall_luci"; break ;;
+            2) passwall_version="passwall2"; break ;;
+            *) echo -e "${RED}[!] Invalid Choice!${NC}" ;;
         esac
     done
 
-    if [ "$install_fa" = "y" ]; then
-        download_from_sourceforge_feed "passwall2" "luci-i18n-passwall2-fa" "$INSTALL_CMD" "$LOG_FILE" || return 1
+    # 2️⃣ مرحله دوم: انتخاب نوع دپلویمنت (Recommended vs Expert)
+    local install_mode=""
+    echo -e "\n${YELLOW}🚀 Installation Strategy :${NC}"
+    echo -e "  ${PURPLE}[1]${NC} Recommended Mode ${GREEN}(Installs: Cores, Essentials + Persian Pack)${NC}"
+    echo -e "  ${PURPLE}[2]${NC} Expert Custom Menu ${YELLOW}(Fetch Live Registry & Toggle Packages)${NC}"
+    while true; do
+        printf "  Select Strategy [1-2]: "
+        read -r m_choice </dev/tty
+        case "$m_choice" in
+            1|2) install_mode="$m_choice"; break ;;
+            *) echo -e "${RED}[!] Invalid Choice!${NC}" ;;
+        esac
+    done
+
+    local target_packages=""
+
+    if [ "$install_mode" = "1" ]; then
+        # 🌟 حالت اتوماتیک و توصیه‌شده (ضد کرش و سریع)
+        target_packages="xray-core tcping geoview"
+        if [ "$passwall_version" = "passwall2" ]; then
+            target_packages="${target_packages} luci-app-passwall2 luci-i18n-passwall2-fa"
+        else
+            target_packages="${target_packages} luci-app-passwall luci-i18n-passwall-fa"
+        fi
+    else
+        # 🧙‍♂️ حالت حرفه‌ای: واکشی آنلاین لیست پکیج‌ها از index.json مخزن انتخابی
+        echo -e "\n${CYAN}📡 Fetching live registry list from SourceForge index.json ...${NC}"
+        local core_list="" luci_list=""
+        
+        fetch_feed_packages_json "passwall_packages" "core_list"
+        fetch_feed_packages_json "$passwall_version" "luci_list"
+        
+        local full_available_list=""
+        for p in $core_list $luci_list; do
+            # فیلتر کردن موارد تکراری یا نال
+            [ -n "$p" ] && full_available_list="${full_available_list} $p"
+        done
+
+        if [ -z "$full_available_list" ]; then
+            echo -e "${RED}❌ Error: Failed to fetch online registry index! Falling back to essentials.${NC}"
+            target_packages="xray-core tcping geoview"
+        else
+            # منوی تعاملی چند انتخابی (Multi-Select Matrix Menu)
+            while true; do
+                clear
+                generate_custom_banner
+                echo -e "${YELLOW}🎯 Expert Deployment Matrix (Select/Toggle Packages):${NC}"
+                echo -e "${GRAY}Enter number to Select/Deselect. Type ${GREEN}'i'${GRAY} to start Installation.${NC}\n"
+                
+                local idx=1
+                for item in $full_available_list; do
+                    local status_flag="[ ]"
+                    if echo "$target_packages" | grep -q "\<$item\>"; then
+                        status_flag="${GREEN}[✓]${NC}"
+                    fi
+                    echo -e "  ${PURPLE}[$idx]${NC} $status_flag $item"
+                    idx=$((idx + 1))
+                done
+                
+                echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
+                printf "⌨️ Enter Option Number or 'i' to install: "
+                read -r exp_input </dev/tty
+                
+                if [ "$exp_input" = "i" ] || [ "$exp_input" = "I" ]; then
+                    [ -z "$target_packages" ] && { echo -e "${RED}Please select at least one package!${NC}"; sleep 1; continue; }
+                    break
+                fi
+                
+                # پیدا کردن آیتم انتخاب شده بر اساس ایندکس عددی
+                local selected_item
+                selected_item=$(echo "$full_available_list" | awk -v target="$exp_input" '{print $target}')
+                
+                if [ -n "$selected_item" ]; then
+                    if echo "$target_packages" | grep -q "\<$selected_item\>"; then
+                        # حذف از لیست انتخابی
+                        target_packages=$(echo "$target_packages" | sed "s/\<$selected_item\>//g")
+                    else
+                        # اضافه به لیست انتخابی
+                        target_packages="${target_packages} ${selected_item}"
+                    fi
+                else
+                    echo -e "${RED}Invalid Selection!${NC}"
+                    sleep 0.5
+                fi
+            done
+        fi
     fi
+
+    # 3️⃣ مرحله نهایی: دپلویمنت امن و قطاری پکیج‌های برگزیده
+    echo -e "\n${CYAN}🌐 [Phase 1/2 : Deploying Micro Proxy Components via Native Feed]${NC}"
     
-    echo -e "\n${GREEN}🔥 Deployment flawless! DayPass Engine is fully running! ${NC}"
+    for pkg in $target_packages; do
+        [ -z "$pkg" ] && continue
+        echo -e "➔ Deploying ${CYAN}${pkg}${NC} via secure native core..."
+        echo -e "   ${GRAY}🚀 Command: apk add $pkg${NC}"
+        
+        if eval "$apk_proxy apk add --allow-untrusted $pkg" >> "$LOG_FILE" 2>&1; then
+            echo -e "   ${GREEN}✔ [Success] $pkg successfully installed!${NC}"
+        else
+            echo -e "   ${RED}⚠️ [Warning/Failed] APK engine encountered a roadblock on $pkg!${NC}"
+            echo -e "   ${GRAY}Check logs at $LOG_FILE for conflict resolution.${NC}"
+        fi
+    done
+
+    echo -e "\n${GREEN}🔥 Deployment session processed! DayPass Engine is operational! ${NC}"
     exit 0
 }
+
+
 
 run_factory_reset() {
     echo -e "${RED}⚠️ WARNING : This will completely wipe the router and reboot! ${NC}"
