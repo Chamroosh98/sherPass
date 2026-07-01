@@ -78,7 +78,7 @@ run_optimized_installation() {
 
     echo -e "\n${YELLOW}⚡ Optimization Prompt :${NC}"
     while true; do
-        printf "🤔 Do you want to install ${CYAN}sing-box${NC} core? ${RED}(💩 Heavy on low-end devices!)${NC} [y/n] : "
+        printf "🤔 Do you want to install ${CYAN}sing-box${NC} core instead of ${CYAN}xray${NC} core?  ${RED}(💩 Heavy on low-end devices!)${NC} [y/n] : "
         read -r raw_input </dev/tty
         check_result=$(validate_ascii_input "$raw_input")
         [ "$check_result" = "empty" ] && { install_singbox="n"; break; }
@@ -97,37 +97,48 @@ run_optimized_installation() {
     if command -v execute_purge_sequence >/dev/null 2>&1; then
         execute_purge_sequence "$PKG_MGR" "$REMOVE_CMD"
     else
-        echo -e "${YELLOW}⚠️ Warning: Cleaner engine not fully mapped in memory. Skipping purge...${NC}"
+        echo -e "${YELLOW}⚠️ Warning : Cleaner engine not fully mapped in memory. Skipping purge ...${NC}"
     fi
     
     echo -e "\n${CYAN}🌐 [Phase 1/2 : Deploying Micro Proxy Cores]${NC}"
     
-    # 1️⃣ نصب مستقل و زره‌پوش پکیج xray-core
-    echo -e "➔ Processing ${CYAN}xray-core${NC} deployment..."
-    download_from_openwrt_feed "xray-core" "$INSTALL_CMD" "$LOG_FILE" || \
+    # 1️⃣ دپلویمنت پکیج xray-core
     download_from_sourceforge_feed "passwall_packages" "xray-core" "$INSTALL_CMD" "$LOG_FILE" || return 1
 
-    # 2️⃣ نصب مستقل پکیج xray-plugin
-    echo -e "➔ Processing ${CYAN}xray-plugin${NC} deployment..."
-    download_from_openwrt_feed "xray-plugin" "$INSTALL_CMD" "$LOG_FILE" || \
+    # 2️⃣ دپلویمنت پکیج xray-plugin
     download_from_sourceforge_feed "passwall_packages" "xray-plugin" "$INSTALL_CMD" "$LOG_FILE" || return 1
 
-    # 3️⃣ نصب مستقل پکیج tcping
-    echo -e "➔ Processing ${CYAN}tcping${NC} deployment..."
-    download_from_openwrt_feed "tcping" "$INSTALL_CMD" "$LOG_FILE" || \
+    # 3️⃣ دپلویمنت پکیج tcping
     download_from_sourceforge_feed "passwall_packages" "tcping" "$INSTALL_CMD" "$LOG_FILE" || return 1
 
-    # 4️⃣ نصب مستقل پکیج geoview
-    echo -e "➔ Processing ${CYAN}geoview${NC} deployment..."
-    download_from_openwrt_feed "geoview" "$INSTALL_CMD" "$LOG_FILE" || \
+    # 4️⃣ دپلویمنت پکیج geoview
     download_from_sourceforge_feed "passwall_packages" "geoview" "$INSTALL_CMD" "$LOG_FILE" || return 1
     
-    # 5️⃣ نصب شرطی پکیج سنگین sing-box
+    # 5️⃣ دپلویمنت شرطی پکیج sing-box
     if [ "$install_singbox" = "y" ]; then
-        echo -e "➔ Processing ${CYAN}sing-box${NC} deployment..."
-        download_from_openwrt_feed "sing-box" "$INSTALL_CMD" "$LOG_FILE" || \
         download_from_sourceforge_feed "passwall_packages" "sing-box" "$INSTALL_CMD" "$LOG_FILE" || return 1
     fi
+    # echo -e "⚙️ Processing ${CYAN}xray-core${NC} deployment..."
+    # download_from_openwrt_feed "xray-core" "$INSTALL_CMD" "$LOG_FILE" || \
+    # download_from_sourceforge_feed "passwall_packages" "xray-core" "$INSTALL_CMD" "$LOG_FILE" || return 1
+
+    # echo -e "⚙️ Processing ${CYAN}xray-plugin${NC} deployment..."
+    # download_from_openwrt_feed "xray-plugin" "$INSTALL_CMD" "$LOG_FILE" || \
+    # download_from_sourceforge_feed "passwall_packages" "xray-plugin" "$INSTALL_CMD" "$LOG_FILE" || return 1
+
+    # echo -e "⚙️ Processing ${CYAN}tcping${NC} deployment..."
+    # download_from_openwrt_feed "tcping" "$INSTALL_CMD" "$LOG_FILE" || \
+    # download_from_sourceforge_feed "passwall_packages" "tcping" "$INSTALL_CMD" "$LOG_FILE" || return 1
+
+    # echo -e "⚙️ Processing ${CYAN}geoview${NC} deployment..."
+    # download_from_openwrt_feed "geoview" "$INSTALL_CMD" "$LOG_FILE" || \
+    # download_from_sourceforge_feed "passwall_packages" "geoview" "$INSTALL_CMD" "$LOG_FILE" || return 1
+    
+    # if [ "$install_singbox" = "y" ]; then
+    #     echo -e "⚙️ Processing ${CYAN}sing-box${NC} deployment..."
+    #     download_from_openwrt_feed "sing-box" "$INSTALL_CMD" "$LOG_FILE" || \
+    #     download_from_sourceforge_feed "passwall_packages" "sing-box" "$INSTALL_CMD" "$LOG_FILE" || return 1
+    # fi
 
     echo -e "\n${CYAN}[Phase 2/2: Injecting LuCI User Interfaces]${NC}"
     download_from_sourceforge_feed "passwall2" "luci-app-passwall2" "$INSTALL_CMD" "$LOG_FILE" || return 1
@@ -156,7 +167,7 @@ run_optimized_installation() {
 
 run_factory_reset() {
     echo -e "${RED}⚠️ WARNING : This will completely wipe the router and reboot! ${NC}"
-    printf "Are you absolutely sure? 😶‍🌫️ (y/n) : "
+    printf "😶‍🌫️ Are you absolutely sure? (y/n) : "
     read -r confirm </dev/tty
     if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then
         echo -e "${YELLOW}🔄 Initiating firstboot sequence and rebooting ... Goodbye!${NC}"
