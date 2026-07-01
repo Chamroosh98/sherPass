@@ -27,6 +27,8 @@ fi
 [ -z "$ARCH" ] && ARCH="arm_cortex-a7_neon-vfpv4"
 
 echo -e "${YELLOW}🚗 Bootstrapping DayPass Core Engine! ${NC}"
+echo -e "${YELLOW}⏰ Please wait... ${NC}"
+
 mkdir -p "${BASE_MODULES}/feeds"
 mkdir -p "${BASE_MODULES}/network"
 

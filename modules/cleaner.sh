@@ -7,7 +7,7 @@ run_environment_setup() {
 
     local targets="luci-app-passwall luci-app-passwall2 luci-i18n-passwall-fa luci-i18n-passwall2-fa xray-core sing-box tcping geoview v2ray-geosite-ir v2ray-geoip"
     
-    echo -e "\n${PURPLE}➔ Deep cleaning old/conflicting Passwall components! 🧼 ${NC}"
+    echo -e "\n${PURPLE}🧼 Deep cleaning old/conflicting Passwall components!  ${NC}"
     
     local installed_list=""
     for pkg in $targets; do
@@ -17,7 +17,7 @@ run_environment_setup() {
     done
 
     if [ -z "$installed_list" ]; then
-        echo -e "   ${GREEN}✔ No installed conflicting components found. System is clean!${NC}"
+        echo -e "   ${GREEN}✅ No installed conflicting components found! System is clean!${NC}"
         return 0
     fi
 
