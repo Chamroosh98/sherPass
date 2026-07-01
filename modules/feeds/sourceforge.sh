@@ -1,9 +1,5 @@
 #!/bin/sh
 # shellcheck shell=ash
-# ==============================================================================
-#  DayPass Framework - Advanced Native Feed Engine (Failsafe & Memory Optimized)
-#  Architect: Chamroosh (ch4mr0sh)
-# ==============================================================================
 
 initialize_daypass_feeds() {
     local log_file=$1
@@ -19,7 +15,7 @@ initialize_daypass_feeds() {
 
     # ۱. دانلود کلید عمومی (فقط اگر موجود نباشد)
     if [ ! -f "$key_destination" ]; then
-        echo -e "🔑 ${YELLOW}Injecting Passwall Trusted Public Key...${NC}"
+        echo -e "🔑 ${YELLOW}Injecting Passwall Trusted Public Key ...${NC}"
         eval curl $c_opts -o "$key_destination" "https://master.dl.sourceforge.net/project/openwrt-passwall-build/apk.pub" >> "$log_file" 2>&1
     fi
 
@@ -29,12 +25,12 @@ initialize_daypass_feeds() {
     local core_feeds="passwall_packages passwall_luci passwall2"
     for feed in $core_feeds; do
         local repo_url="https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/${ARCH}/${feed}"
-        echo -e "📡 ${YELLOW}Registering Feed [${feed}] into Custom Feeds...${NC}"
+        echo -e "📡 ${YELLOW}Registering Feed [${feed}] into Custom Feeds ...${NC}"
         echo "$repo_url" >> "$feed_file"
     done
 
     # ۳. اجرای تنها "یک" دستور apk update سراسری با فلگ حیاتی --allow-untrusted
-    echo -e "🔄 ${CYAN}Updating APK system indexes under Proxy tunnel...${NC}"
+    echo -e "🔄 ${CYAN}Updating APK system indexes under Proxy tunnel ...${NC}"
     eval "$apk_proxy apk update --allow-untrusted" >> "$log_file" 2>&1
 }
 
