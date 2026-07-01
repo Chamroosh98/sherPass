@@ -1,7 +1,7 @@
 #!/bin/sh
 # shellcheck shell=ash
 # ==============================================================================
-#  DayPass Framework - Native APK Package Delivery & Feed Orchestrator
+#  DayPass Framework - Native APK Package Delivery & Feed Orchestrator (Fixed Proxies)
 #  Architect: Chamroosh (ch4mr0sh)
 # ==============================================================================
 
@@ -19,10 +19,9 @@ initialize_daypass_feeds() {
     local key_destination="/etc/apk/keys/apk.pub"
     local feed_file="/etc/apk/repositories.d/customfeeds.list"
     
+    # ✨ فیکس شرط شبکه: گزینه 2 دایرکت است، پس برای بقیه حالت‌ها (1 و 3) پروکسی ست می‌شود
     local c_opts="-sS -L --insecure --connect-timeout 10"
-    [ "$NET_MODE" -ne 1 ] && c_opts="$c_opts --socks5-hostname 127.0.0.1:8090"
-    local apk_proxy=""
-    [ "$NET_MODE" -ne 1 ] && apk_proxy="ALL_PROXY=socks5h://127.0.0.1:8090"
+    [ "$NET_MODE" -ne 2 ] && c_opts="$c_opts --socks5-hostname 127.0.0.1:8090"
 
     mkdir -p /etc/apk/keys /etc/apk/repositories.d
 
@@ -41,16 +40,25 @@ initialize_daypass_feeds() {
         echo "$repo_url" >> "$feed_file"
     done
 
-    # آپدیت سراسری ایندکس دیتابیس سیستم عامل
+    # ✨ فیکس انقلابی پروکسی: اکسپورت سراسری متغیرها برای نفوذ به بازوهای دانلودر داخلی سیستم (uclient / wget)
+    if [ "$NET_MODE" -ne 2 ]; then
+        export ALL_PROXY="socks5h://127.0.0.1:8090"
+        export all_proxy="socks5h://127.0.0.1:8090"
+        export HTTP_PROXY="socks5h://127.0.0.1:8090"
+        export http_proxy="socks5h://127.0.0.1:8090"
+    fi
+
+    # آپدیت سراسری ایندکس دیتابیس سیستم عامل با در نظر گرفتن پروکسی محیطی ارث‌بری شده
     echo -e "🔄 ${CYAN}Updating APK system indexes under Proxy tunnel ...${NC}"
-    eval "$apk_proxy apk update --allow-untrusted" >> "$log_file" 2>&1
+    apk update --allow-untrusted >> "$log_file" 2>&1
 }
 
 fetch_feed_packages_json() {
     local repo_folder=$1 local output_var=$2
     local json_url="https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/${ARCH}/${repo_folder}/index.json"
+    
     local c_opts="-sS -L --insecure --connect-timeout 8"
-    [ "$NET_MODE" -ne 1 ] && c_opts="$c_opts --socks5-hostname 127.0.0.1:8090"
+    [ "$NET_MODE" -ne 2 ] && c_opts="$c_opts --socks5-hostname 127.0.0.1:8090"
 
     local raw_json
     raw_json=$(eval curl $c_opts "$json_url" 2>/dev/null)
@@ -76,14 +84,18 @@ download_package_smart() {
         return 0
     fi
 
-    # ۲. تنظیم خودکار پراکسی محیطی apk بر اساس انتخاب کاربر در منو
-    local apk_proxy=""
-    [ "$NET_MODE" -ne 1 ] && apk_proxy="ALL_PROXY=socks5h://127.0.0.1:8090"
+    # ۲. تمدید و تداوم پروکسی محیطی برای امنیت ساب‌شل‌ها و فرآیند نصب
+    if [ "$NET_MODE" -ne 2 ]; then
+        export ALL_PROXY="socks5h://127.0.0.1:8090"
+        export all_proxy="socks5h://127.0.0.1:8090"
+        export HTTP_PROXY="socks5h://127.0.0.1:8090"
+        export http_proxy="socks5h://127.0.0.1:8090"
+    fi
 
     print_status "work" "Installing ${CYAN}$keyword${NC} via native APK package manager..."
 
-    # ۳. نصب کاملاً نیتیو بدون فایل موقت تمپ و اسکرپ کردن وب
-    eval "$apk_proxy apk add --allow-untrusted $keyword" >> "$log_file" 2>&1
+    # ۳. نصب کاملاً نیتیو و بدون تمپ
+    apk add --allow-untrusted "$keyword" >> "$log_file" 2>&1
 
     # ۴. راستی‌آزمایی واقعی از دیتابیس سیستم
     if apk info -e "$keyword" >/dev/null 2>&1; then
