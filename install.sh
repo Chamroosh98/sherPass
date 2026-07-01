@@ -1,7 +1,7 @@
 #!/bin/sh
 # shellcheck shell=ash
 # ==============================================================================
-#  DayPass Framework - Pure Lifecycle Orchestrator & Entry Point
+#  DayPass Framework - Pure Lifecycle Orchestrator & Entry Point (Fixed Lifecycle)
 #  Architect: Chamroosh (ch4mr0sh)
 # ==============================================================================
 
@@ -62,16 +62,28 @@ echo -e "${YELLOW}⏰ Synchronizing remaining DayPass core modules! ${NC}"
 LOADER_OPTS="-sS -L --insecure --connect-timeout 10"
 [ "$NET_MODE" -ne 1 ] && LOADER_OPTS="$LOADER_OPTS --socks5-hostname 127.0.0.1:8090"
 
+# اجرای لودر آنلاین برای دانلود فایل‌ها از گیت‌هاب
 . "${BASE_MODULES}/loader.sh"
 run_online_loader "$GITHUB_RAW_URL" "$@"
 
-# همگام‌سازی ارکستراتور اصلی دانلودهای نیتیو و بنر
-[ -s "${BASE_MODULES}/network/orchestrator.sh" ] && . "${BASE_MODULES}/network/orchestrator.sh"
+# ✨ فیکس لایف‌سایکل: سورس کردن ارکستراتور بلافاصله پس از اتمام کار لودر
+if [ -s "${BASE_MODULES}/network/orchestrator.sh" ]; then
+    . "${BASE_MODULES}/network/orchestrator.sh"
+elif [ -s "${BASE_MODULES}/orchestrator.sh" ]; then
+    . "${BASE_MODULES}/orchestrator.sh"
+else
+    echo -e "${RED}❌ Critical Error: orchestrator.sh is missing from storage!${NC}"
+    exit 1
+fi
+
+# لود ماژول بنر
 if [ -s "${BASE_MODULES}/banner.sh" ]; then . "${BASE_MODULES}/banner.sh"; else exit 1; fi
 
 run_optimized_installation() {
     enforce_root_password
     echo -e "\n${CYAN}📦 Initializing DayPass Secure Feed Environments ...${NC}"
+    
+    # این تابع الان با موفقیت شناسایی و اجرا می‌شود
     initialize_daypass_feeds "$LOG_FILE"
 
     local passwall_version="" install_mode="" target_packages=""
@@ -99,7 +111,7 @@ run_optimized_installation() {
         fi
     fi
 
-    # تحویل پکیج‌های نهایی به ارکستراتور دانلود بومی (بدون فایل تمپ)
+    # تحویل پکیج‌های نهایی به ارکستراتور دانلود بومی
     echo -e "\n${CYAN}🌐 [Phase 1/2 : Deploying Components via Native APK Core]${NC}"
     for pkg in $target_packages; do
         [ -n "$pkg" ] && download_package_smart "$passwall_version" "$pkg" "$ARCH" "$INSTALL_CMD" "$LOG_FILE"
@@ -115,9 +127,9 @@ run_factory_reset() {
     [ "$confirm" = "y" ] || [ "$confirm" = "Y" ] && firstboot -y && reboot
 }
 
-# 📱 لوپ هاب اصلی (کاملاً خلوت و فیکس شده)
+# 📱 لوپ هاب اصلی
 while true; do
-    menu_choice="" # ✨ فیکس: کلمه local حذف شد تا خطای سینتکس خارج از تابع در ash رخ ندهد
+    menu_choice=""
     render_main_menu "menu_choice"
     [ -z "$menu_choice" ] && continue
     
