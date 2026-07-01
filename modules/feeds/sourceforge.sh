@@ -1,7 +1,10 @@
 #!/bin/sh
 # shellcheck shell=ash
+# ==============================================================================
+#  DayPass Framework - Advanced Native Feed & JSON Registry Engine (Failsafe Sync)
+#  Architect: Chamroosh (ch4mr0sh)
+# ==============================================================================
 
-# تابع عمومی برای ثبت کلید و مخازن سورس‌فورج در سیستم
 initialize_daypass_feeds() {
     local log_file=$1
     local key_destination="/etc/apk/keys/apk.pub"
@@ -12,33 +15,37 @@ initialize_daypass_feeds() {
     local apk_proxy=""
     [ "$NET_MODE" -ne 1 ] && apk_proxy="ALL_PROXY=socks5h://127.0.0.1:8090"
 
-    # ۱. دانلود کلید عمومی در صورت عدم وجود
+    # ایجاد دایرکتوری در صورت عدم وجود
+    mkdir -p /etc/apk/keys /etc/apk/repositories.d
+
+    # ۱. دانلود کلید عمومی با تضمین مسیر کامل
     if [ ! -f "$key_destination" ]; then
         echo -e "🔑 ${YELLOW}Injecting Passwall Trusted Public Key...${NC}"
         eval curl $c_opts -o "$key_destination" "https://master.dl.sourceforge.net/project/openwrt-passwall-build/apk.pub" >> "$log_file" 2>&1
     fi
 
-    # ۲. ثبت هر ۳ دایرکتوری حیاتی سورس‌فورج برای دسترسی بدون نقص به پکیج‌ها و دپندنس‌ها
+    # ۲. ثبت هر ۳ مخزن به صورت تفکیک‌شده و تضمینی
     local core_feeds="passwall_packages passwall_luci passwall2"
     local feed_added=0
 
+    # پاکسازی فایل فید قدیمی برای جلوگیری از تکرار یا خطوط خراب
+    cat /dev/null > "$feed_file"
+
     for feed in $core_feeds; do
         local repo_url="https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/${ARCH}/${feed}"
-        if ! grep -q "$feed" "$feed_file" 2>/dev/null; then
-            echo -e "📡 ${YELLOW}Registering Feed [${feed}] into Custom Feeds...${NC}"
-            echo "$repo_url" >> "$feed_file"
-            feed_added=1
-        fi
+        echo -e "📡 ${YELLOW}Registering Feed [${feed}] into Custom Feeds...${NC}"
+        echo "$repo_url" >> "$feed_file"
+        feed_added=1
     done
 
-    # ۳. اگر فید جدیدی اضافه شده، کل ایندکس apk را با پروکسی آپدیت کن
+    # ۳. آپدیت مخازن با موتور لوکال و پروکسی
     if [ $feed_added -eq 1 ]; then
         echo -e "🔄 ${CYAN}Updating APK system indexes under Proxy tunnel...${NC}"
-        eval "$apk_proxy apk update" >> "$log_file" 2>&1
+        # آپدیت ایندکس‌ها با نادیده گرفتن خطاهای جزیی و فورس کردن لود کامل
+        eval "$apk_proxy apk update --allow-untrusted" >> "$log_file" 2>&1
     fi
 }
 
-# تابع هوشمند برای واکشی زنده لیست پکیج‌ها از روی فایل index.json سرور
 fetch_feed_packages_json() {
     local repo_folder=$1
     local output_var=$2
@@ -47,7 +54,6 @@ fetch_feed_packages_json() {
     local c_opts="-sS -L --insecure --connect-timeout 8"
     [ "$NET_MODE" -ne 1 ] && c_opts="$c_opts --socks5-hostname 127.0.0.1:8090"
 
-    # دانلود جی‌سان در حافظه موقت
     local raw_json
     raw_json=$(eval curl $c_opts "$json_url" 2>/dev/null)
     
@@ -55,7 +61,6 @@ fetch_feed_packages_json() {
         return 1
     fi
 
-    # پارسر اختصاصی با awk برای استخراج نام کلیدهای بخش "packages"
     local parsed_list
     parsed_list=$(echo "$raw_json" | awk '
         /"packages":/ {flag=1; next}

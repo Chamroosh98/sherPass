@@ -27,7 +27,7 @@ fi
 [ -z "$ARCH" ] && ARCH="arm_cortex-a7_neon-vfpv4"
 
 echo -e "${YELLOW}🚗 Bootstrapping DayPass Core Engine! ${NC}"
-echo -e "${YELLOW}⏰ Please wait... ${NC}"
+echo -e "${YELLOW}⏰ Please wait ... ${NC}"
 
 mkdir -p "${BASE_MODULES}/feeds"
 mkdir -p "${BASE_MODULES}/network"
@@ -196,7 +196,8 @@ run_optimized_installation() {
         echo -e "➔ Deploying ${CYAN}${pkg}${NC} via secure native core..."
         echo -e "   ${GRAY}🚀 Command: apk add $pkg${NC}"
         
-        if eval "$apk_proxy apk add --allow-untrusted $pkg" >> "$LOG_FILE" 2>&1; then
+        # افزودن فلگ --force-broken-world برای حل مشکلات تداخل ریپازیتوری‌های همزمان در apk اوپن‌ورت ۲۵
+        if eval "$apk_proxy apk add --allow-untrusted --force-broken-world $pkg" >> "$LOG_FILE" 2>&1; then
             echo -e "   ${GREEN}✔ [Success] $pkg successfully installed!${NC}"
         else
             echo -e "   ${RED}⚠️ [Warning/Failed] APK engine encountered a roadblock on $pkg!${NC}"
