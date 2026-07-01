@@ -27,7 +27,7 @@ fi
 [ -z "$ARCH" ] && ARCH="arm_cortex-a7_neon-vfpv4"
 
 echo -e "${YELLOW}🚗 Bootstrapping DayPass Core Engine! ${NC}"
-echo -e "${YELLOW}⏰ Please wait ... ${NC}(${GRAY}If U R in IRAN, so PLEASE Kheily Keilyyyyyyy wait :) ${NC}"
+echo -e "${YELLOW}⏰ Please wait ...${NC}${GRAY}(If U R in IRAN, so PLEASE Kheily Keilyyyyyyy wait :) ${NC}"
 
 mkdir -p "${BASE_MODULES}/feeds"
 mkdir -p "${BASE_MODULES}/network"
@@ -188,7 +188,8 @@ run_optimized_installation() {
         fi
     fi
 
-    # 3️⃣ مرحله نهایی: دپلویمنت امن و قطاری پکیج‌های برگزیده
+
+    # 3️⃣ مرحله نهایی: دپلویمنت قطعی و تایید شده پکیج‌ها
     echo -e "\n${CYAN}🌐 [Phase 1/2 : Deploying Micro Proxy Components via Native Feed]${NC}"
     
     for pkg in $target_packages; do
@@ -196,14 +197,30 @@ run_optimized_installation() {
         echo -e "➔ Deploying ${CYAN}${pkg}${NC} via secure native core..."
         echo -e "   ${GRAY}🚀 Command: apk add $pkg${NC}"
         
-        # استفاده از فلگ‌های سبک و نادیده گرفتن ارورهای غیر بحرانی کانکشن
-        if eval "$apk_proxy apk add --allow-untrusted --force-broken-world $pkg" >> "$LOG_FILE" 2>&1; then
-            echo -e "   ${GREEN}✔ [Success] $pkg successfully installed!${NC}"
+        # تلاش برای نصب پکیج
+        eval "$apk_proxy apk add --allow-untrusted $pkg" >> "$LOG_FILE" 2>&1
+        
+        # 🔍 راستی‌آزمایی بی‌رحمانه: آیا پکیج واقعاً در سیستم ثبت و نصب شد؟
+        if apk info -e "$pkg" >/dev/null 2>&1; then
+            echo -e "   ${GREEN}✔ [Verified Success] $pkg is fully functional!${NC}"
         else
-            echo -e "   ${RED}⚠️ [Warning/Failed] APK engine encountered a roadblock on $pkg!${NC}"
-            echo -e "   ${GRAY}Check logs at $LOG_FILE for conflict resolution.${NC}"
+            echo -e "   ${RED}❌ [Verification Failed] apk lied! $pkg was NOT installed.${NC}"
+            echo -e "   ${YELLOW}🔄 Attempting Failsafe Re-indexing...${NC}"
+            
+            # پاکسازی کش خراب و تلاش مجدد برای سینک همان فید
+            rm -rf /var/cache/apk/* /lib/apk/db/lock 2>/dev/null
+            eval "$apk_proxy apk update --allow-untrusted" >> "$LOG_FILE" 2>&1
+            eval "$apk_proxy apk add --allow-untrusted $pkg" >> "$LOG_FILE" 2>&1
+            
+            # چک کردن دوباره بعد از فیکس کش
+            if apk info -e "$pkg" >/dev/null 2>&1; then
+                echo -e "   ${GREEN}✔ [Fixed & Installed] $pkg successfully deployed after cache purge!${NC}"
+            else
+                echo -e "   ${RED}💀 [Fatal Error] Could not deploy $pkg. See $LOG_FILE${NC}"
+            fi
         fi
     done
+
 
     echo -e "\n${GREEN}🔥 Deployment session processed! DayPass Engine is operational! ${NC}"
     exit 0
