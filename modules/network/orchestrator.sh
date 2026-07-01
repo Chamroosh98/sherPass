@@ -33,11 +33,13 @@ initialize_daypass_feeds() {
         eval curl $c_opts -o "$key_destination" "https://master.dl.sourceforge.net/project/openwrt-passwall-build/apk.pub" >> "$log_file" 2>&1
     fi
 
+    # پاکسازی فایل قدیمی
     cat /dev/null > "$feed_file"
 
     local core_feeds="passwall_packages passwall_luci passwall2"
     for feed in $core_feeds; do
-        local repo_url="https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/${ARCH}/${feed}"
+        # ✨ فیکس حیاتی: اضافه کردن packages.adb به انتهای آدرس سورس برای موتور apk
+        local repo_url="https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/${ARCH}/${feed}/packages.adb"
         echo -e "📡 ${YELLOW}Registering Feed [${feed}] into Custom Feeds ...${NC}"
         echo "$repo_url" >> "$feed_file"
     done
