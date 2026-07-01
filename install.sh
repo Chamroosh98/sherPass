@@ -100,24 +100,19 @@ run_optimized_installation() {
         echo -e "${YELLOW}⚠️ Warning : Cleaner engine not fully mapped in memory. Skipping purge ...${NC}"
     fi
     
-    echo -e "\n${CYAN}🌐 [Phase 1/2 : Deploying Micro Proxy Cores]${NC}"
+    echo -e "\n${CYAN}🌐 [Phase 1/2 : Deploying Micro Proxy Cores via Native Custom Feed]${NC}"
     
-    # 1️⃣ دپلویمنت پکیج xray-core
+    # دپلویمنت پکیج‌ها یکی پس از دیگری از طریق پکیج منیجر لوکال
     download_from_sourceforge_feed "passwall_packages" "xray-core" "$INSTALL_CMD" "$LOG_FILE" || return 1
-
-    # 2️⃣ دپلویمنت پکیج xray-plugin
     download_from_sourceforge_feed "passwall_packages" "xray-plugin" "$INSTALL_CMD" "$LOG_FILE" || return 1
-
-    # 3️⃣ دپلویمنت پکیج tcping
     download_from_sourceforge_feed "passwall_packages" "tcping" "$INSTALL_CMD" "$LOG_FILE" || return 1
-
-    # 4️⃣ دپلویمنت پکیج geoview
     download_from_sourceforge_feed "passwall_packages" "geoview" "$INSTALL_CMD" "$LOG_FILE" || return 1
     
-    # 5️⃣ دپلویمنت شرطی پکیج sing-box
     if [ "$install_singbox" = "y" ]; then
         download_from_sourceforge_feed "passwall_packages" "sing-box" "$INSTALL_CMD" "$LOG_FILE" || return 1
     fi
+    
+    # echo -e "\n${CYAN}🌐 [Phase 1/2 : Deploying Micro Proxy Cores]${NC}"
     # echo -e "⚙️ Processing ${CYAN}xray-core${NC} deployment..."
     # download_from_openwrt_feed "xray-core" "$INSTALL_CMD" "$LOG_FILE" || \
     # download_from_sourceforge_feed "passwall_packages" "xray-core" "$INSTALL_CMD" "$LOG_FILE" || return 1
