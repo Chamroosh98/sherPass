@@ -58,23 +58,56 @@ fi
 # 🚀 گام حیاتی ۳: سینک بقیه ماژول‌های هسته با در نظر گرفتن تانل انتخابی شبکه
 echo -e "${YELLOW}⏰ Synchronizing remaining DayPass core modules! ${NC}"
 
-# اعمال داینامیک پروکسی روی لودر برای جلوگیری از ارور سینک ماژول‌ها (مثل cronjob.sh)
-LOADER_OPTS="-sS -L --insecure --connect-timeout 10"
-[ "$NET_MODE" -ne 1 ] && LOADER_OPTS="$LOADER_OPTS --socks5-hostname 127.0.0.1:8090"
+# اعمال داینامیک پروکسی روی لودر و کرل (تست هماهنگ با گزینه‌های ۱ و ۳)
+LOADER_OPTS="-sS -L --insecure --connect-timeout 15"
+if [ "$NET_MODE" -ne 2 ]; then
+    # استفاده از متغیر استاندارد ALL_PROXY برای پوشش تمام ابزارها به همراه فلگ نیتیو کرل
+    export ALL_PROXY="socks5h://127.0.0.1:8090"
+    LOADER_OPTS="$LOADER_OPTS --socks5-hostname 127.0.0.1:8090"
+fi
 
 # اجرای لودر آنلاین برای دانلود فایل‌ها از گیت‌هاب
 . "${BASE_MODULES}/loader.sh"
 run_online_loader "$GITHUB_RAW_URL" "$@"
 
-# ✨ فیکس لایف‌سایکل: سورس کردن ارکستراتور بلافاصله پس از اتمام کار لودر
+# 🛡️ مکانیزم تعقیب، دانلود دو مسیره و فالبک هوشمند
+if [ ! -s "${BASE_MODULES}/network/orchestrator.sh" ] && [ ! -s "${BASE_MODULES}/orchestrator.sh" ]; then
+    echo -e "${YELLOW}⚠️ Orchestrator missing from loader registry. Fetching from primary path...${NC}"
+    
+    if command -v curl >/dev/null 2>&1; then
+        # مسیر اول: داخل فولدر network
+        curl $LOADER_OPTS -o "${BASE_MODULES}/network/orchestrator.sh" "${GITHUB_RAW_URL}/modules/network/orchestrator.sh?v=$(date +%s)" 2>/dev/null
+        
+        # اگر مسیر اول خالی بود، مسیر دوم (ریشه ماژول‌ها) را تست کن
+        if [ ! -s "${BASE_MODULES}/network/orchestrator.sh" ]; then
+            echo -e "${YELLOW}🔄 Path 1 failed. Trying root modules path...${NC}"
+            curl $LOADER_OPTS -o "${BASE_MODULES}/orchestrator.sh" "${GITHUB_RAW_URL}/modules/orchestrator.sh?v=$(date +%s)" 2>/dev/null
+        fi
+    else
+        # فالبک با استفاده از wget به عنوان لایه اضطراری
+        wget -qO "${BASE_MODULES}/network/orchestrator.sh" "${GITHUB_RAW_URL}/modules/network/orchestrator.sh?v=$(date +%s)" 2>/dev/null
+        if [ ! -s "${BASE_MODULES}/network/orchestrator.sh" ]; then
+            wget -qO "${BASE_MODULES}/orchestrator.sh" "${GITHUB_RAW_URL}/modules/orchestrator.sh?v=$(date +%s)" 2>/dev/null
+        fi
+    fi
+fi
+
+# 📥 بررسی وضعیت نهایی و سورس کردن قطعی ماژول
 if [ -s "${BASE_MODULES}/network/orchestrator.sh" ]; then
     . "${BASE_MODULES}/network/orchestrator.sh"
+    echo -e "${GREEN}✅ Orchestrator loaded successfully from [network/orchestrator.sh]${NC}"
 elif [ -s "${BASE_MODULES}/orchestrator.sh" ]; then
     . "${BASE_MODULES}/orchestrator.sh"
+    echo -e "${GREEN}✅ Orchestrator loaded successfully from [modules/orchestrator.sh]${NC}"
 else
-    echo -e "${RED}❌ Critical Error: orchestrator.sh is missing from storage!${NC}"
+    echo -e "${RED}❌ Critical Error: orchestrator.sh could not be synchronized!${NC}"
+    echo -e "${YELLOW}🔍 Debug Info: NET_MODE=${NET_MODE} | Path1 size: $(wc -c <"${BASE_MODULES}/network/orchestrator.sh" 2>/dev/null || echo "0") | Path2 size: $(wc -c <"${BASE_MODULES}/orchestrator.sh" 2>/dev/null || echo "0")${NC}"
+    unset ALL_PROXY
     exit 1
 fi
+
+# پاکسازی امن متغیر پروکسی محیطی برای مراحل بعدی
+unset ALL_PROXY
 
 # لود ماژول بنر
 if [ -s "${BASE_MODULES}/banner.sh" ]; then . "${BASE_MODULES}/banner.sh"; else exit 1; fi
