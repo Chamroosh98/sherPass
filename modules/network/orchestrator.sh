@@ -1,11 +1,85 @@
 #!/bin/sh
 # shellcheck shell=ash
+# ==============================================================================
+#  DayPass Framework - Central Orchestrator & Smart Package Delivery Engine
+#  Architect: Chamroosh (ch4mr0sh)
+# ==============================================================================
+
+# تزریق توابع پایه برای چاپ استاتوس در صورتی که در سورس‌های موازی لود نشده باشند
+print_status() {
+    local type=$1 local msg=$2
+    case "$type" in
+        "work") echo -e "   ${YELLOW}➔${NC} $msg" ;;
+        "success") echo -e "   ${GREEN}✔${NC} $msg" ;;
+        "failed") echo -e "   ${RED}❌${NC} $msg" ;;
+        "sub") echo -e "     ${GRAY}⚙️ $msg${NC}" ;;
+    esac
+}
+
+initialize_daypass_feeds() {
+    local log_file=$1
+    local key_destination="/etc/apk/keys/apk.pub"
+    local feed_file="/etc/apk/repositories.d/customfeeds.list"
+    
+    local c_opts="-sS -L --insecure --connect-timeout 10"
+    [ "$NET_MODE" -ne 1 ] && c_opts="$c_opts --socks5-hostname 127.0.0.1:8090"
+    local apk_proxy=""
+    [ "$NET_MODE" -ne 1 ] && apk_proxy="ALL_PROXY=socks5h://127.0.0.1:8090"
+
+    mkdir -p /etc/apk/keys /etc/apk/repositories.d
+
+    if [ ! -f "$key_destination" ]; then
+        echo -e "🔑 ${YELLOW}Injecting Passwall Trusted Public Key ...${NC}"
+        eval curl $c_opts -o "$key_destination" "https://master.dl.sourceforge.net/project/openwrt-passwall-build/apk.pub" >> "$log_file" 2>&1
+    fi
+
+    cat /dev/null > "$feed_file"
+
+    local core_feeds="passwall_packages passwall_luci passwall2"
+    for feed in $core_feeds; do
+        local repo_url="https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/${ARCH}/${feed}"
+        echo -e "📡 ${YELLOW}Registering Feed [${feed}] into Custom Feeds ...${NC}"
+        echo "$repo_url" >> "$feed_file"
+    done
+
+    echo -e "🔄 ${CYAN}Updating APK system indexes under Proxy tunnel ...${NC}"
+    eval "$apk_proxy apk update --allow-untrusted" >> "$log_file" 2>&1
+}
+
+fetch_feed_packages_json() {
+    local repo_folder=$1
+    local output_var=$2
+    
+    local json_url="https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/${ARCH}/${repo_folder}/index.json"
+    local c_opts="-sS -L --insecure --connect-timeout 8"
+    [ "$NET_MODE" -ne 1 ] && c_opts="$c_opts --socks5-hostname 127.0.0.1:8090"
+
+    local raw_json
+    raw_json=$(eval curl $c_opts "$json_url" 2>/dev/null)
+    
+    if [ -z "$raw_json" ]; then
+        return 1
+    fi
+
+    local parsed_list
+    parsed_list=$(echo "$raw_json" | awk '
+        /"packages":/ {flag=1; next}
+        /}/ && flag {flag=0}
+        flag {
+            gsub(/[",:]/, "", $1);
+            print $1
+        }
+    ')
+
+    eval "$output_var=\"$parsed_list\""
+    return 0
+}
 
 download_package_smart() {
     local sub_folder=$1 local keyword=$2 local arch=$3 local ins_cmd=$4 local log_file=$5
-    local space_path="/tmp/DayPass_space/modules/network"
+    local space_path="/tmp/daypass_space/modules/network"
 
-    if apk info -e "$keyword" >/dev/null 2>&1 || [ "$keyword" = "xray-core" ] && apk info -e "xray-plugin" >/dev/null 2>&1; then
+    if apk info -e "$keyword" >/dev/null 2>&1 || { [ "$keyword" = "xray-core" ] && apk info -e "xray-plugin" >/dev/null 2>&1; }; then
         echo -e "   ${GREEN}✔ [Skipped] $keyword is already deployed flawlessly!🦧 No re-download needed! ✨${NC}"
         return 0
     fi
@@ -21,10 +95,10 @@ download_package_smart() {
     [ "$keyword" = "xray-core" ] && search_keyword="xray-plugin"
 
     if [ "$NET_MODE" -eq 1 ]; then
-        . "$space_path/direct.sh"
+        . "$space_path/direct.sh" 2>/dev/null || true
         local engine_mode="direct"
     else
-        . "$space_path/proxy.sh"
+        . "$space_path/proxy.sh" 2>/dev/null || true
         local engine_mode=$([ "$NET_MODE" -eq 2 ] && echo "proxy" || echo "smart-proxy")
     fi
 
@@ -34,7 +108,11 @@ download_package_smart() {
     print_status "work" "Scanning SourceForge registry for latest $keyword [Engine: $engine_mode]..."
     
     local html_content
-    html_content=$([ "$engine_mode" = "direct" ] && fetch_direct "$folder_url" "" "" "$log_file" || fetch_proxy "$folder_url" "" "" "$log_file")
+    if [ "$engine_mode" = "direct" ]; then
+        html_content=$(fetch_direct "$folder_url" "" "" "$log_file")
+    else
+        html_content=$(fetch_proxy "$folder_url" "" "" "$log_file")
+    fi
 
     if [ $? -eq 0 ] && [ -n "$html_content" ]; then
         echo "$html_content" > "$tmp_html"
@@ -68,7 +146,7 @@ download_package_smart() {
         fetch_proxy "" "$full_download_url" "$tmp_target" "$log_file"; dl_status=$?
         if [ $dl_status -ne 0 ] && [ "$engine_mode" = "smart-proxy" ]; then
             echo -e "   ${YELLOW}⚠️ Proxy dropped connection. Retrying via Direct Connection! ${NC}"
-            . "$space_path/direct.sh"
+            . "$space_path/direct.sh" 2>/dev/null || true
             fetch_direct "" "$full_download_url" "$tmp_target" "$log_file"; dl_status=$?
         fi
     fi
