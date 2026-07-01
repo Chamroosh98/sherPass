@@ -28,6 +28,7 @@ fi
 
 echo -e "${YELLOW}🚗 Bootstrapping DayPass Core Engine! ${NC}"
 echo -e "${YELLOW}⏰ Please wait ... ${NC}"
+echo -e "${GRAY}⏰ If U R in IRAN, so PLEASE Kheily Keilyyyyyyy wait :) ${NC}"
 
 mkdir -p "${BASE_MODULES}/feeds"
 mkdir -p "${BASE_MODULES}/network"
