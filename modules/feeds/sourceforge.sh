@@ -33,9 +33,9 @@ initialize_daypass_feeds() {
         echo "$repo_url" >> "$feed_file"
     done
 
-    # ۳. اجرای تنها "یک" دستور apk update سراسری و سبک برای کل سیستم
+    # ۳. اجرای تنها "یک" دستور apk update سراسری با فلگ حیاتی --allow-untrusted
     echo -e "🔄 ${CYAN}Updating APK system indexes under Proxy tunnel...${NC}"
-    eval "$apk_proxy apk update" >> "$log_file" 2>&1
+    eval "$apk_proxy apk update --allow-untrusted" >> "$log_file" 2>&1
 }
 
 fetch_feed_packages_json() {
