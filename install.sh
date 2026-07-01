@@ -1,30 +1,29 @@
 #!/bin/sh
 # shellcheck shell=ash
 # ==============================================================================
-#  DayPass Framework - Core Bootstrapper & Lifecycle Orchestrator
+#  DayPass Framework - Pure Lifecycle Orchestrator & Entry Point
 #  Architect: Chamroosh (ch4mr0sh)
 # ==============================================================================
 
 clear
 
-# ۱. لود مستقیم سورس موقت UI برای بالا آوردن متغیرها و رنگ‌ها
+# لود اولیه لایه UI از گیت‌هاب (برای بالا آمدن رنگ‌ها و ثوابت محیطی)
 export BASE_MODULES="/tmp/daypass_space/modules"
 export GITHUB_RAW_URL="https://raw.githubusercontent.com/Chamroosh98/DayPass/main"
 
-mkdir -p "${BASE_MODULES}/feeds" "${BASE_MODULES}/network"
+mkdir -p "${BASE_MODULES}/network"
 
-# دانلود فایل سیستم ساز با محیط کاربری
 INIT_OPTS="-sS -L --insecure --connect-timeout 10"
 if command -v curl >/dev/null 2>&1; then
-    curl $INIT_OPTS -o "${BASE_MODULES}/network/ui.sh" "${GITHUB_RAW_URL}/modules/network/ui.sh?v=$(date +%s)" 2>/dev/null
+    curl $INIT_OPTS -o "${BASE_MODULES}/ui.sh" "${GITHUB_RAW_URL}/ui.sh?v=$(date +%s)" 2>/dev/null
 else
-    wget -qO "${BASE_MODULES}/network/ui.sh" "${GITHUB_RAW_URL}/modules/network/ui.sh?v=$(date +%s)" 2>/dev/null
+    wget -qO "${BASE_MODULES}/ui.sh" "${GITHUB_RAW_URL}/ui.sh?v=$(date +%s)" 2>/dev/null
 fi
 
-if [ -s "${BASE_MODULES}/network/ui.sh" ]; then
-    . "${BASE_MODULES}/network/ui.sh"
+if [ -s "${BASE_MODULES}/ui.sh" ]; then
+    . "${BASE_MODULES}/ui.sh"
 else
-    echo -e "\033[31m❌ Critical : UI Layer configuration component missing!\\033[0m"
+    echo -e "\033[31m❌ Critical: UI Layer component could not be fetched!\\033[0m"
     exit 1
 fi
 
@@ -41,7 +40,7 @@ export ARCH PKG_MGR INSTALL_CMD REMOVE_CMD
 
 echo -e "${YELLOW}🚗 Bootstrapping DayPass Core Engine! ${NC}"
 
-# دانلود سریع دیگر اسکلت‌های اولیه سیستم از گیت‌هاب
+# دانلود موازی مابقی زیرساخت‌ها
 if command -v curl >/dev/null 2>&1; then
     curl $INIT_OPTS -o "${BASE_MODULES}/zero_deps.sh" "${GITHUB_RAW_URL}/modules/zero_deps.sh?v=$(date +%s)" 2>/dev/null
     curl $INIT_OPTS -o "${BASE_MODULES}/loader.sh" "${GITHUB_RAW_URL}/modules/loader.sh?v=$(date +%s)" 2>/dev/null
@@ -52,14 +51,12 @@ else
     wget -qO "${BASE_MODULES}/network/menu.sh" "${GITHUB_RAW_URL}/modules/network/menu.sh?v=$(date +%s)" 2>/dev/null
 fi
 
-# تزریق وابستگی‌های حیاتی و منوی شبکه
+# تزریق وابستگی‌ها و لود منوی هوشمند شبکه (NET_MODE)
 . "${BASE_MODULES}/zero_deps.sh" && deploy_system_dependencies "$PKG_MGR" "$INSTALL_CMD" "$LOG_FILE"
 . "${BASE_MODULES}/network/menu.sh" && show_network_menu
 
-echo -e "${YELLOW}⏰ Synchronizing remaining DayPass core modules! ${NC}"
+# همگام‌سازی ارکستراتور اصلی دانلودهای نیتیو و بنر
 . "${BASE_MODULES}/loader.sh" && run_online_loader "$GITHUB_RAW_URL" "$@"
-
-# لود ماژول‌های ارکستراتور بومی شبکه و بنر
 [ -s "${BASE_MODULES}/network/orchestrator.sh" ] && . "${BASE_MODULES}/network/orchestrator.sh"
 if [ -s "${BASE_MODULES}/banner.sh" ]; then . "${BASE_MODULES}/banner.sh"; else exit 1; fi
 
@@ -70,16 +67,12 @@ run_optimized_installation() {
 
     local passwall_version="" install_mode="" target_packages=""
     
-    # فراخوانی ویزارد تمیز از فایل UI
+    # اجرای جادوگر نصب از لایه UI
     render_installation_wizard "passwall_version" "install_mode"
 
     if [ "$install_mode" = "1" ]; then
         target_packages="xray-core tcping geoview"
-        if [ "$passwall_version" = "passwall2" ]; then
-            target_packages="${target_packages} luci-app-passwall2 luci-i18n-passwall2-fa"
-        else
-            target_packages="${target_packages} luci-app-passwall luci-i18n-passwall-fa"
-        fi
+        target_packages="${target_packages} $([ "$passwall_version" = "passwall2" ] && echo "luci-app-passwall2 luci-i18n-passwall2-fa" || echo "luci-app-passwall luci-i18n-passwall-fa")"
     else
         echo -e "\n${CYAN}📡 Fetching live registry list from SourceForge index.json ...${NC}"
         local core_list="" luci_list="" full_available_list=""
@@ -89,21 +82,19 @@ run_optimized_installation() {
         for p in $core_list $luci_list; do [ -n "$p" ] && full_available_list="${full_available_list} $p"; done
 
         if [ -z "$full_available_list" ]; then
-            echo -e "${RED}❌ Error: Online registry blocked! Falling back to essentials.${NC}"
+            echo -e "${RED}❌ Error: Online index failed. Falling back to essentials.${NC}"
             target_packages="xray-core tcping geoview"
         else
-            # رندر ماتریس چند انتخابی پکیج‌ها از فایل UI
+            # اجرای ماتریس انتخاب از لایه UI
             render_expert_matrix "$full_available_list" "target_packages"
         fi
     fi
 
-    # اجرای نهایی نصب نیتیو با ارکستراتور اصلی
-    echo -e "\n${CYAN}🌐 [Phase 1/2 : Deploying Micro Proxy Components via Native Core]${NC}"
+    # تحویل پکیج‌های نهایی به ارکستراتور دانلود بومی
+    echo -e "\n${CYAN}🌐 [Phase 1/2 : Deploying Components via Native APK Core]${NC}"
     for pkg in $target_packages; do
-        [ -z "$pkg" ] && continue
-        download_package_smart "$passwall_version" "$pkg" "$ARCH" "$INSTALL_CMD" "$LOG_FILE"
+        [ -n "$pkg" ] && download_package_smart "$passwall_version" "$pkg" "$ARCH" "$INSTALL_CMD" "$LOG_FILE"
     done
-
     echo -e "\n${GREEN}🔥 Deployment session processed! DayPass Engine is operational! ${NC}"
     exit 0
 }
@@ -115,18 +106,13 @@ run_factory_reset() {
     [ "$confirm" = "y" ] || [ "$confirm" = "Y" ] && firstboot -y && reboot
 }
 
-# 📱 هاب اصلی و سبک منوی تعاملی
+# 📱 لوپ هاب اصلی (کاملاً خلوت و ایزوله)
 while true; do
-    clear; generate_custom_banner; draw_header "$ARCH" "$PKG_MGR"
+    local menu_choice=""
+    render_main_menu "menu_choice"
+    [ -z "$menu_choice" ] && continue
     
-    echo -e "  ${PURPLE}[1]${NC} Optimized Installation ${GRAY}(Cores + LuCI Selection)${NC}"
-    echo -e "  ${PURPLE}[2]${NC} Apply/Update Iran Smart Routing ${GRAY}(DAT files)${NC}"
-    echo -e "  ${PURPLE}[3]${NC} Enable Daily Auto-Update ${GRAY}(CronJob)${NC}"
-    echo -e "  ${RED}[4] Factory Reset Router ${GRAY}(Emergency Recovery)${NC}"
-    echo -e "  ${PURPLE}[0]${NC} Exit\n─────────────────────────────────────────────────"
-    printf "  Select an option [0-4]: " && read -r choice </dev/tty
-    
-    case "$choice" in
+    case "$menu_choice" in
         1) clear; generate_custom_banner; run_optimized_installation ;;
         2) clear; generate_custom_banner; run_iran_rules_module ;;
         3) clear; generate_custom_banner; setup_auto_update "$LOG_FILE" ;;

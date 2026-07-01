@@ -1,19 +1,28 @@
 #!/bin/sh
 # shellcheck shell=ash
+# ==============================================================================
+#  DayPass Framework - Central User Interface & Menu Presentation Layer
+#  Architect: Chamroosh (ch4mr0sh)
+# ==============================================================================
 
+# 🎨 کدهای رنگی و متغیرهای سراسری
 export LOG_FILE="/tmp/DayPass.log"
 export GITHUB_RAW_URL="https://raw.githubusercontent.com/Chamroosh98/DayPass/main"
 export BASE_MODULES="/tmp/daypass_space/modules"
 export NET_MODE=3
 
-export CYAN="\033[1;38;5;51m"; export PURPLE="\033[38;5;141m"; export GREEN="\033[32m"
-export YELLOW="\033[33m"; export GRAY="\033[90m"; export RED="\033[31m"; export NC="\033[0m"
+export CYAN="\033[1;38;5;51m"
+export PURPLE="\033[38;5;141m"
+export GREEN="\033[32m"
+export YELLOW="\033[33m"
+export GRAY="\033[90m"
+export RED="\033[31m"
+export NC="\033[0m"
 
-# 🛠️ منوی انتخاب نسخه پاسوال و استراتژی نصب
+# 🛠️ منوی تعاملی انتخاب ورژن پاسوال و استراتژی نصب
 render_installation_wizard() {
     local p_version_var=$1 local i_mode_var=$2
     
-    # 1️⃣ انتخاب ورژن Passwall
     echo -e "\n${YELLOW}🛠️ Passwall Generation Choice :${NC}"
     echo -e "  ${PURPLE}[1]${NC} Passwall 1 ${GRAY}(Classic Stable)${NC}"
     echo -e "  ${PURPLE}[2]${NC} Passwall 2 ${GRAY}(Modern Advanced)${NC}"
@@ -27,7 +36,6 @@ render_installation_wizard() {
         esac
     done
 
-    # 2️⃣ انتخاب نوع دپلویمنت
     echo -e "\n${YELLOW}🚀 Installation Strategy :${NC}"
     echo -e "  ${PURPLE}[1]${NC} Recommended Mode ${GREEN}(Essentials + Persian Pack)${NC}"
     echo -e "  ${PURPLE}[2]${NC} Expert Custom Menu ${YELLOW}(Live Matrix Menu)${NC}"
@@ -48,7 +56,7 @@ render_expert_matrix() {
 
     while true; do
         clear
-        [ -n "$(command -v generate_custom_banner)" ] && generate_custom_banner
+        generate_custom_banner
         echo -e "${YELLOW}🎯 Expert Deployment Matrix (Select/Toggle Packages):${NC}"
         echo -e "${GRAY}Enter number to Select/Deselect. Type ${GREEN}'i'${GRAY} to start Installation.${NC}\n"
         
@@ -86,4 +94,22 @@ render_expert_matrix() {
     done
 
     eval "$target_pkgs_var='$selected_pkgs'"
+}
+
+# 📱 رندر منوی اصلی
+render_main_menu() {
+    local choice_var=$1
+    clear
+    generate_custom_banner
+    draw_header "$ARCH" "$PKG_MGR"
+    
+    echo -e "  ${PURPLE}[1]${NC} Optimized Installation ${GRAY}(Cores + LuCI Selection)${NC}"
+    echo -e "  ${PURPLE}[2]${NC} Apply/Update Iran Smart Routing ${GRAY}(DAT files)${NC}"
+    echo -e "  ${PURPLE}[3]${NC} Enable Daily Auto-Update ${GRAY}(CronJob)${NC}"
+    echo -e "  ${RED}[4] Factory Reset Router ${GRAY}(Emergency Recovery)${NC}"
+    echo -e "  ${PURPLE}[0]${NC} Exit"
+    echo -e "${PURPLE}─────────────────────────────────────────────────${NC}"
+    printf "  Select an option [0-4]: "
+    read -r chosen_opt </dev/tty
+    eval "$choice_var='$chosen_opt'"
 }
