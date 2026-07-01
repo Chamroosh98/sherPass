@@ -1,42 +1,37 @@
 #!/bin/sh
 # shellcheck shell=ash
 # ==============================================================================
-#  DayPass Framework - Native APK Custom Feed Injector (SourceForge Edition)
+#  DayPass Framework - Native Trusted Repository Provisioner
 #  Architect: Chamroosh (ch4mr0sh)
 # ==============================================================================
 
-download_from_sourceforge_feed() {
+setup_secure_sourceforge_feed() {
     local repo_folder=$1
-    local pkg_name=$2
-    local ins_cmd=$3 # در اینجا همان apk add است
-    local log_file=$4
+    local log_file=$2
 
+    local key_destination="/etc/apk/keys/apk.pub"
     local feed_file="/etc/apk/repositories.d/customfeeds.list"
-    # لینک مستقیم دایرکتوری مخزن که حاوی پکیج‌ها و فایل packages.adb است
-    local repo_url="https://downloads.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/${ARCH}/${repo_folder}"
+    local repo_url="https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/${ARCH}/${repo_folder}"
 
-    echo -e "🔎 Injecting SourceForge Custom Feed for ${CYAN}${pkg_name}${NC} ..."
+    # آپشن‌های پروکسی برای عبور مطمئن از فیلترینگ
+    local c_opts="-sS -L --insecure --connect-timeout 10"
+    [ "$NET_MODE" -ne 1 ] && c_opts="$c_opts --socks5-hostname 127.0.0.1:8090"
+    local apk_proxy=""
+    [ "$NET_MODE" -ne 1 ] && apk_proxy="ALL_PROXY=socks5h://127.0.0.1:8090"
 
-    # ۱. ثبت مخزن در customfeeds.list در صورت عدم وجود
+    # ۱. دانلود کلید عمومی در صورت عدم وجود
+    if [ ! -f "$key_destination" ]; then
+        echo -e "🔑 ${YELLOW}Injecting Passwall Trusted Public Key...${NC}"
+        echo -e "   ${GRAY}📡 Target: $key_destination${NC}"
+        eval curl $c_opts -o "$key_destination" "https://master.dl.sourceforge.net/project/openwrt-passwall-build/apk.pub" >> "$log_file" 2>&1
+    fi
+
+    # ۲. ثبت فید اختصاصی سورس‌فورج و آپدیت سراسری با پروکسی
     if ! grep -q "$repo_folder" "$feed_file" 2>/dev/null; then
-        echo -e "   ${GRAY}📡 Adding to Custom Feeds: $feed_file${NC}"
-        # استفاده از --insecure برای مخازن بدون SSL تایید شده در روتر
+        echo -e "📡 ${YELLOW}Registering Passwall Feed into Custom Feeds...${NC}"
         echo "$repo_url" >> "$feed_file"
         
-        echo -e "   ${YELLOW}🔄 Synchronizing APK package index (packages.adb)...${NC}"
-        apk update >> "$log_file" 2>&1
+        echo -e "🔄 ${CYAN}Updating APK system indexes under Proxy tunnel...${NC}"
+        eval "$apk_proxy apk update" >> "$log_file" 2>&1
     fi
-
-    # برای نمایش در UI
-    echo -e "   ${GRAY}📡 Remote Registry : ${repo_url}/packages.adb${NC}"
-    echo -e "   ${PURPLE}🚀 Requesting native APK core to pull and deploy ${pkg_name}...${NC}"
-
-    # ۲. نصب مستقیم پکیج از مخزن جدید به همراه فلگ نادیده گرفتن سورس‌های بدون امضا
-    if apk add --allow-untrusted "$pkg_name" >> "$log_file" 2>&1; then
-        echo -e "   ${GREEN}✔ [Success] $pkg_name deployment complete via Native Package Manager!${NC}"
-        return 0
-    fi
-
-    echo -e "   ${RED}❌ APK Engine failed to pull $pkg_name. Check network or repository integrity!${NC}"
-    return 1
 }

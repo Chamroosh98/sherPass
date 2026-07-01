@@ -100,18 +100,31 @@ run_optimized_installation() {
         echo -e "${YELLOW}⚠️ Warning : Cleaner engine not fully mapped in memory. Skipping purge ...${NC}"
     fi
     
-    echo -e "\n${CYAN}🌐 [Phase 1/2 : Deploying Micro Proxy Cores via Native Custom Feed]${NC}"
+    echo -e "\n${CYAN}🌐 [Phase 1/2 : Deploying Micro Proxy Cores via Native Feed]${NC}"
     
-    # دپلویمنت پکیج‌ها یکی پس از دیگری از طریق پکیج منیجر لوکال
-    download_from_sourceforge_feed "passwall_packages" "xray-core" "$INSTALL_CMD" "$LOG_FILE" || return 1
-    download_from_sourceforge_feed "passwall_packages" "xray-plugin" "$INSTALL_CMD" "$LOG_FILE" || return 1
-    download_from_sourceforge_feed "passwall_packages" "tcping" "$INSTALL_CMD" "$LOG_FILE" || return 1
-    download_from_sourceforge_feed "passwall_packages" "geoview" "$INSTALL_CMD" "$LOG_FILE" || return 1
-    
-    if [ "$install_singbox" = "y" ]; then
-        download_from_sourceforge_feed "passwall_packages" "sing-box" "$INSTALL_CMD" "$LOG_FILE" || return 1
-    fi
-    
+    # تنظیم متغیر پروکسی بومی برای اجرای کامندهای apk
+    local apk_proxy=""
+    [ "$NET_MODE" -ne 1 ] && apk_proxy="ALL_PROXY=socks5h://127.0.0.1:8090"
+
+    # قدم اول: آماده‌سازی فید سورس‌فورج (فقط بار اول ایندکس‌ها آپدیت می‌شوند)
+    setup_secure_sourceforge_feed "passwall_packages" "$LOG_FILE"
+
+    # قدم دوم: نصب پکیج‌ها مثل بنز با پکیج منیجر اصلی سیستم عامل
+    local packages_to_install="xray-core xray-plugin tcping geoview"
+    [ "$install_singbox" = "y" ] && packages_to_install="${packages_to_install} sing-box"
+
+    for pkg in $packages_to_install; do
+        echo -e "➔ Deploying ${CYAN}${pkg}${NC} via secure native core..."
+        echo -e "   ${GRAY}🚀 Command: apk add $pkg${NC}"
+        
+        if eval "$apk_proxy apk add $pkg" >> "$LOG_FILE" 2>&1; then
+            echo -e "   ${GREEN}✔ [Success] $pkg successfully installed!${NC}"
+        else
+            echo -e "   ${RED}❌ [Failed] APK engine could not deploy $pkg!${NC}"
+            return 1
+        fi
+    done
+
     # echo -e "\n${CYAN}🌐 [Phase 1/2 : Deploying Micro Proxy Cores]${NC}"
     # echo -e "⚙️ Processing ${CYAN}xray-core${NC} deployment..."
     # download_from_openwrt_feed "xray-core" "$INSTALL_CMD" "$LOG_FILE" || \
